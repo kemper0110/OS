@@ -18,6 +18,17 @@
 
 #include <catch2/catch.hpp>
 
+//class MinAllocation {
+//
+//};
+//
+//template <typename AllocationStrategy = MinAllocation>
+//class Allocator;
+//
+//template <typename AllocationStrategy>
+//class Allocator {
+//
+//};
 
 
 TEST_CASE("Empty in the middle", "[Allocator]") {
