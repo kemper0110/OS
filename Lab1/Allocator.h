@@ -13,6 +13,21 @@
 #include <optional>
 
 
+//class MinAllocation {
+//
+//};
+//
+//template <typename AllocationStrategy = MinAllocation>
+//class Allocator;
+//
+//template <typename AllocationStrategy>
+//class Allocator {
+//
+//};
+
+
+
+
 /*
 
 В качестве
@@ -34,6 +49,9 @@
 
 в) Получить информацию о свободных/занятых участках в «оперативной памяти»
 */
+
+
+
 class Allocator {
 public:
 	std::vector<bool> bitmap;

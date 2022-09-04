@@ -29,5 +29,11 @@
     <ClInclude Include="RegionView.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="BasicAllocator.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>
