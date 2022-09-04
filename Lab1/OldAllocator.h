@@ -52,32 +52,32 @@
 
 
 
-class Allocator {
-public:
-	std::vector<bool> bitmap;
-	struct Allocation {
-		std::size_t owner;
-		std::size_t size;
-		friend bool operator==(const Allocation& lhs, const Allocation& rhs) {
-			return lhs.owner == rhs.owner && lhs.size == rhs.size;
-		}
-	};
-	std::vector<Allocation> allocations;
-
-	struct MemoryInfo {
-		std::size_t used_regions;
-		std::size_t free_regions;
-		std::size_t used_size;
-		std::size_t free_size;
-		std::vector<Allocation> allocations;
-		std::string view;
-	};
-
-	Allocator(std::size_t size);
-	std::size_t allocate(std::size_t allocation_size);
-	void deallocate(std::size_t ptr);
-	MemoryInfo getInfo() const;
-};
+//class Allocator {
+//public:
+//	std::vector<bool> bitmap;
+//	struct Allocation {
+//		std::size_t owner;
+//		std::size_t size;
+//		friend bool operator==(const Allocation& lhs, const Allocation& rhs) {
+//			return lhs.owner == rhs.owner && lhs.size == rhs.size;
+//		}
+//	};
+//	std::vector<Allocation> allocations;
+//
+//	struct MemoryInfo {
+//		std::size_t used_regions;
+//		std::size_t free_regions;
+//		std::size_t used_size;
+//		std::size_t free_size;
+//		std::vector<Allocation> allocations;
+//		std::string view;
+//	};
+//
+//	Allocator(std::size_t size);
+//	std::size_t allocate(std::size_t allocation_size);
+//	void deallocate(std::size_t ptr);
+//	MemoryInfo getInfo() const;
+//};
 
 
 
