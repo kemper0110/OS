@@ -135,6 +135,8 @@
     <ClCompile Include="Lab1.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bitmap.h" />
+    <ClInclude Include="Blocklist.h" />
     <ClInclude Include="OldAllocator.h" />
     <ClInclude Include="BasicAllocator.h" />
     <ClInclude Include="LeastSuitable.h" />

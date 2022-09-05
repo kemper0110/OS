@@ -20,12 +20,11 @@
 //import LeastSuitable;
 //import Blocklist;
 
-//#include "NewAllocator.h"
+#include "NewAllocator.h"
 #include "LeastSuitable.h"
 
-//#define CATCH_CONFIG_MAIN
-//
-//#include <catch2/catch.hpp>
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
 
 
 //TEST_CASE("лоль") {
@@ -61,81 +60,70 @@
 
 
 
-int main() {
+//int main() {
+//
+//	Allocator<Bitmap, LeastSuitable> a(100);
+//
+//	const auto ptr = a.allocate(1);
+//	a.deallocate(ptr);
+//
+//}
 
-	Allocator<Bitmap, LeastSuitable> a(100);
-
-	a.allocate(1);
-	a.deallocate(nullptr);
+using allocator = Allocator<Bitmap, LeastSuitable>;
 
 
-	//BasicAllocator<Bitmap, LeastSuitable> a(100);
-	//auto ptr = a.allocate(10);
+TEST_CASE("Empty in the middle", "[Allocator]") {
+	allocator a(100);
+	a.allocate(24);
+	auto info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+
+	auto ptr = a.allocate(49);
+	info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+
+	a.allocate(24);
+	info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+
+
+	a.deallocate(ptr);
+	info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+
+	REQUIRE(info.used_regions == 2);
+	REQUIRE(info.free_regions == 1);
+	REQUIRE(info.used_size == 50);
+	REQUIRE(info.free_size == 50);
+}
+
+TEST_CASE("Overflow", "[Allocator]") {
+	allocator a(100);
+	a.allocate(99);
+
+	REQUIRE_THROWS_AS(a.allocate(1), std::runtime_error);
+	const auto info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+}
+
+TEST_CASE("Allocations", "[Allocator]") {
+	allocator a(100);
+
+	a.allocate(20);
+	a.allocate(33);
+	a.allocate(44);
+
+	const auto info = a.storage.getInfo();
+
+	std::cout << info.view << '\n';
 }
 
 
-//TEST_CASE("Empty in the middle", "[Allocator]") {
-//	std::cout << "Empty in the middle\n";
-//	Allocator a(100);
-//	a.allocate(25);
-//	auto ptr = a.allocate(50);
-//	a.allocate(25);
-//
-//	a.deallocate(ptr);
-//
-//	const auto info = a.getInfo();
-//	std::cout << info.view << '\n';
-//
-//	REQUIRE(info.used_regions == 2);
-//	REQUIRE(info.free_regions == 1);
-//	REQUIRE(info.used_size == 50);
-//	REQUIRE(info.free_size == 50);
-//	std::cout << '\n';
-//}
-//
-//TEST_CASE("Overflow", "[Allocator]") {
-//	std::cout << "Overflow\n";
-//	Allocator a(100);
-//	a.allocate(100);
-//
-//	REQUIRE_THROWS_AS(a.allocate(1), std::runtime_error);
-//	const auto info = a.getInfo();
-//	std::cout << info.view << '\n';
-//	std::cout << '\n';
-//}
-//
-//TEST_CASE("Allocations", "[Allocator]") {
-//	std::cout << "Allocations\n";
-//	Allocator a(100);
-//
-//	a.allocate(25);
-//	
-//	a.allocate(30);
-//	a.allocate(45);
-//
-//	const auto info = a.getInfo();
-//
-//	REQUIRE(
-//		info.allocations == decltype(info.allocations) {
-//			{ 0, 25 }, { 25, 30 }, { 55, 45 }
-//	});
-//	std::cout << info.view << '\n';
-//	std::cout << '\n';
-//
-//
-//	//std::cout << "owners\tsize\n";
-//	//for (const auto& [owner, size] : info.allocations) 
-//		//std::cout << owner << '\t' << size << '\n';
-//
-//}
-//
-//
-//TEST_CASE("Allocate more than exists", "[Allocator]") {
-//	std::cout << "Allocate more than exists\n";
-//	Allocator a(100);
-//
-//	REQUIRE_THROWS_AS(a.allocate(256), std::runtime_error);
-//}
+TEST_CASE("Allocate more than exists", "[Allocator]") {
+	allocator a(100);
+
+	REQUIRE_THROWS_AS(a.allocate(256), std::runtime_error);
+}
 
 
 

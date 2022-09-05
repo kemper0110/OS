@@ -29,10 +29,10 @@ struct LeastSuitable {
 
 
 template<>
-auto LeastSuitable<Bitmap>::allocate(std::size_t allocation_size) {
+auto LeastSuitable<Bitmap>::allocate(std::size_t n) {
 	using iter_t = std::vector<bool>::iterator;
 
-	auto bitmap = allocator()->storage.bitmap;
+	auto& bitmap = allocator()->storage.bitmap;
 	//const auto rng = RegionView{ bitmap };
 	//for (
 	//	auto iter = rng.begin();
@@ -56,7 +56,7 @@ auto LeastSuitable<Bitmap>::allocate(std::size_t allocation_size) {
 			auto begin = std::exchange(prev, std::nullopt).value();
 			auto end = std::next(iter, iter != bitmap.begin());
 			auto dist = std::distance(begin, end);
-			if (std::cmp_less(dist, allocation_size + 1))	// + space for allocation_size
+			if (std::cmp_less(dist, n + 1))	// + space for allocation_size
 				continue;
 			if (best) {
 				const auto best_dist = std::distance(best->first, best->second);
@@ -76,44 +76,43 @@ auto LeastSuitable<Bitmap>::allocate(std::size_t allocation_size) {
 		if (not prev)
 			throw std::runtime_error("not en0ugh memory");
 		else
-			if (std::distance(prev.value(), bitmap.end()) < allocation_size + 1)
+			if (std::distance(prev.value(), bitmap.end()) < n + 1)
 				throw std::runtime_error("not en0ugh memory");
 			else
 				best.emplace(prev.value(), bitmap.end());
 	}
 
-	std::cout << "all0cated " << allocation_size << " at " << std::distance(bitmap.begin(), best->first) << '\n';
-	std::fill_n(best->first, allocation_size, true);
-	const auto bitmap_idx = std::distance(bitmap.begin(), best->first);
+	std::cout << "all0cated " << n + 1 << " at " << std::distance(bitmap.begin(), best->first) << '\n';
+	std::fill_n(best->first, n + 1, true);
+	const auto bitmap_start = std::distance(bitmap.begin(), best->first);
 
 	auto& memory = allocator()->storage.memory;
 
-	auto actual_start = memory.get(bitmap_idx);
-
-	*actual_start = allocation_size;
+	const auto actual_start = memory.get(bitmap_start);
+	*actual_start = n;
 	const auto data_start = actual_start + 1;
 
-
-
-	return actual_start;
+	return data_start;
 }
 
 template<>
-auto LeastSuitable<Bitmap>::deallocate(size_t* ptr) {
-	auto & memory = allocator()->storage.memory;
+auto LeastSuitable<Bitmap>::deallocate(size_t* data_start) {
+	if (data_start == nullptr) 
+		return;
+
+	auto& memory = allocator()->storage.memory;
 	auto& bitmap = allocator()->storage.bitmap;
 
-	const auto data_start = ptr;
-	const auto data_size = *(ptr - 1);
-
 	const auto actual_start = data_start - 1;
+
+	const auto data_size = *actual_start;
 	const auto actual_size = data_size + 1;
 
-	const auto bitmap_start = (ptr - actual_start) / sizeof(std::size_t);
-	const auto bitmap_size = actual_size / sizeof(std::size_t);
-	//assert(false);
-	std::fill_n(bitmap.begin() + bitmap_start, bitmap_size, false);
+	const auto memory_start = memory.get();
+	const auto bitmap_offset = actual_start - memory_start;
+
+	std::fill_n(bitmap.begin() + bitmap_offset, actual_size, false);
 
 
-	std::cout << "deall0cated " << bitmap_size << " at " << bitmap_start << '\n';
+	std::cout << "deall0cated " << actual_size << " at " << bitmap_offset << '\n';
 }
