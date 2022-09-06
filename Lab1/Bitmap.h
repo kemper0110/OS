@@ -1,7 +1,7 @@
 #pragma once
 #include "Memory.h"
 
-
+template<typename T>
 struct Bitmap {
 	struct MemoryInfo {
 		std::size_t used_regions{};
@@ -10,8 +10,8 @@ struct Bitmap {
 		std::size_t free_size{};
 		std::string view{};
 	};
-	Memory memory;
-	Bitmap(size_t size) : memory(size), bitmap(size, false) {}
+	Memory<T> memory;
+	Bitmap(std::size_t size) : memory(size), bitmap(size, false) {}
 	MemoryInfo getInfo() {
 		const auto free = std::ranges::count(bitmap, true);
 		const auto allocated = bitmap.size() - free;

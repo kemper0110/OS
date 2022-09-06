@@ -17,11 +17,12 @@
 
 
 template<
-	typename Storage,
-	template<typename> typename Strategy
+	typename T,
+	template<typename> typename Storage,
+	template<typename, typename> typename Strategy
 >
-struct Allocator : Strategy<Storage> {
-	Storage storage;
+struct Allocator : Strategy<T, Storage<T>> {
+	Storage<T> storage;
 	Allocator(size_t size) : storage(size) {}
 };
 

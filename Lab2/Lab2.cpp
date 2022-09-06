@@ -68,6 +68,7 @@ struct Ram {
 	std::array<Page, PAGECOUNT> pages{};
 };
 
+
 struct Hdd {
 	std::array<Page, PAGECOUNT> pages{};
 };
