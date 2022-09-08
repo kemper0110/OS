@@ -20,10 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BasicAllocator.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="NewAllocator.h">
+    <ClInclude Include="Allocator.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Memory.h">

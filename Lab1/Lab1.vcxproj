@@ -138,10 +138,9 @@
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="Blocklist.h" />
-    <ClInclude Include="BasicAllocator.h" />
     <ClInclude Include="LeastSuitable.h" />
     <ClInclude Include="Memory.h" />
-    <ClInclude Include="NewAllocator.h" />
+    <ClInclude Include="Allocator.h" />
     <ClInclude Include="RegionView.h" />
   </ItemGroup>
   <ItemGroup>

@@ -15,7 +15,7 @@
 #include <vector>
 #include <functional>
 
-#include "NewAllocator.h"
+#include "Allocator.h"
 
 #include "Bitmap.h"
 
@@ -35,18 +35,27 @@ template<
 	typename T,
 	typename Storage
 >
-struct LeastSuitable {
-	auto allocate(std::size_t size);
-	auto deallocate(size_t* ptr);
-	auto allocator();
-};
+struct LeastSuitable;
 
 
-template<typename T>
-struct LeastSuitable<T, Bitmap<T>> {
+
+
+template<typename T, std::size_t BLOCKSIZE>
+struct LeastSuitable<T, Bitmap<BLOCKSIZE>> {
+private:
+	static std::size_t ceilSize(std::size_t n) {
+		return ceilBytes(sizeof(T) * n + sizeof(std::size_t));
+	}
+	static std::size_t ceilBytes(std::size_t n) {
+		const auto [quot, rem] {
+			std::lldiv(n, BLOCKSIZE)
+		};
+		return quot + (rem == 0 ? 0 : 1);
+	}
+public:
 	auto allocator() {
 		return static_cast<
-			Allocator<T, Bitmap, LeastSuitable>*
+			Allocator<T, Bitmap<BLOCKSIZE>, LeastSuitable>*
 		>(this);
 	}
 	auto allocate(std::size_t size) {
@@ -54,12 +63,14 @@ struct LeastSuitable<T, Bitmap<T>> {
 
 		auto& bitmap = allocator()->storage.bitmap;
 
+		const auto bitmap_size = ceilSize(size);
+
 		std::optional<std::pair<iter_t, iter_t>> best;
 
-		for (auto [begin, end] : RegionView{ bitmap }) {
+		for (const auto [begin, end] : RegionView{ bitmap }) {
 			const auto distance = std::distance(begin, end);
 
-			if (distance < size + 1)
+			if(std::cmp_less(distance, bitmap_size))	//	!!!
 				continue;
 
 			if (not best.has_value()) {
@@ -75,83 +86,40 @@ struct LeastSuitable<T, Bitmap<T>> {
 			throw std::runtime_error("not en0ugh memory");
 
 		const auto bitmap_offset = std::distance(bitmap.begin(), best->first);
-		std::cout << "all0cated " << size + 1 << " at " << bitmap_offset << '\n';
-		std::fill_n(best->first, size + 1, true);
+		std::cout << "all0cated " << bitmap_size << " at " << bitmap_offset << '\n';
+		std::fill_n(best->first, bitmap_size, true);
 
 		auto& memory = allocator()->storage.memory;
 
-		const auto actual_start = memory.get(bitmap_offset);
-		*actual_start = size;
+		const auto actual_start = reinterpret_cast<std::size_t*>(memory.get(bitmap_offset));
+		*actual_start = size * sizeof(T);	// remember block size in bytes
+		std::cout << "remembered: " << * actual_start << '\n';
 		const auto data_start = actual_start + 1;
 
-		return data_start;
-
-		//std::optional<std::pair<iter_t, iter_t>> best;
-		//std::optional<iter_t> prev;
-		//for (
-		//	auto iter = bitmap.begin();
-		//	iter != bitmap.end();
-		//	iter = std::adjacent_find(iter + 1, bitmap.end(), std::not_equal_to{})) {
-
-		//	if (iter == bitmap.begin() and *iter)
-		//		continue;
-
-		//	if (prev) {
-		//		auto begin = std::exchange(prev, std::nullopt).value();
-		//		auto end = std::next(iter, iter != bitmap.begin());
-		//		auto dist = std::distance(begin, end);
-		//		if (std::cmp_less(dist, n + 1))	// + space for allocation_size
-		//			continue;
-		//		if (best) {
-		//			const auto best_dist = std::distance(best->first, best->second);
-		//			if (dist < best_dist)
-		//				best = { begin, end };
-		//		}
-		//		else
-		//			best = { begin, end };
-		//	}
-		//	else
-		//		prev = std::next(iter, iter != bitmap.begin());
-		//}
-
-		//if (not best) {
-		//	if (not prev)
-		//		throw std::runtime_error("not en0ugh memory");
-		//	else
-		//		if (std::distance(prev.value(), bitmap.end()) < n + 1)
-		//			throw std::runtime_error("not en0ugh memory");
-		//		else
-		//			best.emplace(prev.value(), bitmap.end());
-		//}
-
-		//std::cout << "all0cated " << n + 1 << " at " << std::distance(bitmap.begin(), best->first) << '\n';
-		//std::fill_n(best->first, n + 1, true);
-		//const auto bitmap_start = std::distance(bitmap.begin(), best->first);
-		//auto& memory = allocator()->storage.memory;
-		//const auto actual_start = memory.get(bitmap_start);
-		//*actual_start = n;
-		//const auto data_start = actual_start + 1;
-		//return data_start;
+		return reinterpret_cast<T*>(data_start);
 	}
-	auto deallocate(size_t* data_start) {
+	auto deallocate(void* data_start) {
 		if (data_start == nullptr)
 			return;
 
 		auto& memory = allocator()->storage.memory;
 		auto& bitmap = allocator()->storage.bitmap;
 
-		const auto actual_start = data_start - 1;
+		const auto actual_start = reinterpret_cast<size_t*>(data_start) - 1;
 
 		const auto data_size = *actual_start;
-		const auto actual_size = data_size + 1;
 
-		const auto memory_start = memory.get();
-		const auto bitmap_offset = actual_start - memory_start;
+		const auto bitmap_size = ceilBytes(data_size);
+		//const auto actual_size = data_size + sizeof(std::size_t);
 
-		std::fill_n(bitmap.begin() + bitmap_offset, actual_size, false);
+		const auto memory_start = memory.get();	// void*
+		const auto bitmap_offset = (reinterpret_cast<char*>(actual_start) - reinterpret_cast<char*>(memory_start)) / BLOCKSIZE;
 
 
-		std::cout << "deall0cated " << actual_size << " at " << bitmap_offset << '\n';
+		std::fill_n(bitmap.begin() + bitmap_offset, bitmap_size, false);
+
+
+		std::cout << "deall0cated " << bitmap_size << " at " << bitmap_offset << '\n';
 	}
 };
 

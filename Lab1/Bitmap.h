@@ -1,7 +1,9 @@
 #pragma once
 #include "Memory.h"
 
-template<typename T>
+#include "RegionView.h"
+
+template<std::size_t BLOCKSIZE>
 struct Bitmap {
 	struct MemoryInfo {
 		std::size_t used_regions{};
@@ -10,12 +12,14 @@ struct Bitmap {
 		std::size_t free_size{};
 		std::string view{};
 	};
-	Memory<T> memory;
-	Bitmap(std::size_t size) : memory(size), bitmap(size, false) {}
+	static std::size_t calcSize(std::size_t bytes) {
+		return bytes / BLOCKSIZE;
+	}
+	Memory memory;
+	Bitmap(std::size_t size) : memory(size), bitmap(calcSize(size), false) {}
 	MemoryInfo getInfo() {
 		const auto free = std::ranges::count(bitmap, true);
 		const auto allocated = bitmap.size() - free;
-
 
 		std::string str;
 		std::transform(bitmap.begin(), bitmap.end(), std::back_inserter(str), [](auto v) {return v + '0'; });
@@ -30,12 +34,13 @@ struct Bitmap {
 			if (iter == bitmap.begin())
 				insideUsedRegion = *iter;
 
+			//(insideUsedRegion ? counter_used : counter_free) += 1;
 			counter_used += insideUsedRegion;
 			counter_free += !insideUsedRegion;
 
-			//(insideUsedRegion ? counter_used : counter_free) += 1;
 			insideUsedRegion = !insideUsedRegion;
 		}
+
 
 		return MemoryInfo{
 			.used_regions = counter_used,
@@ -45,5 +50,9 @@ struct Bitmap {
 			.view = std::move(str)
 		};
 	}
+	constexpr std::size_t getBlockSize() {
+		return BLOCKSIZE;
+	}
+
 	std::vector<bool> bitmap;
 };

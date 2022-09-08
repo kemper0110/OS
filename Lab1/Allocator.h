@@ -18,12 +18,12 @@
 
 template<
 	typename T,
-	template<typename> typename Storage,
+	typename Storage,
 	template<typename, typename> typename Strategy
 >
-struct Allocator : Strategy<T, Storage<T>> {
-	Storage<T> storage;
-	Allocator(size_t size) : storage(size) {}
+struct Allocator : Strategy<T, Storage> {
+	Storage storage;
+	Allocator(std::size_t size) : storage(size) {}
 };
 
 
