@@ -7,30 +7,40 @@
 struct RegionView : public std::ranges::view_interface<RegionView> {
 	using vec_t = std::vector<bool>;
 
-	vec_t& vec;
+	vec_t& bitmap;
 
-	RegionView(vec_t& vec) : vec(vec) {}
+	RegionView(vec_t& vec) : bitmap(vec) {}
 	struct Sentinel {};
 
 	struct Iterator {
-		vec_t& vec;
-		vec_t::iterator current;
+		vec_t& bitmap;
+		using iter_t = vec_t::iterator;
+		iter_t begin, end;
 
-		Iterator(vec_t& vec) : vec(vec), current(vec.begin()) {
-			if (*current)
-				current = std::adjacent_find(current + 1, vec.end(), std::not_equal_to{});
+		void next() {
+			if (begin == bitmap.end() || end == bitmap.end()) {
+				begin = end = bitmap.end();
+				return;
+			}
+			begin = std::find(begin, bitmap.end(), false);
+			end = std::find(begin, bitmap.end(), true);
+		}
+
+		Iterator(vec_t& vec) : bitmap(vec), begin(vec.begin()), end(vec.begin()) {
+			next();
 		}
 		Iterator& operator++() {
-			current = std::adjacent_find(current + 1, vec.end(), std::not_equal_to{});
+			next();
+			return *this;
 		}
 		bool operator==(Sentinel) const {
-			return current == vec.end();
+			return begin == bitmap.end();
 		}
-		vec_t::iterator operator*()const {
-			return std::next(current, current == vec.begin());
+		std::pair<iter_t, iter_t> operator*() const {
+			return { begin, end };
 		}
 	};
 
-	Iterator begin() const { return { vec }; }
+	Iterator begin() const { return { bitmap }; }
 	Sentinel end() const { return {}; }
 };

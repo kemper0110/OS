@@ -74,63 +74,58 @@
 using allocator = Allocator<std::size_t, Bitmap, LeastSuitable>;
 
 
-int main() {
+TEST_CASE("Empty in the middle", "[Allocator]") {
 	allocator a(100);
+	a.allocate(24);
+	auto info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+
+	auto ptr = a.allocate(49);
+	info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+
+	a.allocate(24);
+	info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+
+
+	a.deallocate(ptr);
+	info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+
+	REQUIRE(info.used_regions == 2);
+	REQUIRE(info.free_regions == 1);
+	REQUIRE(info.used_size == 50);
+	REQUIRE(info.free_size == 50);
 }
 
-//
-//TEST_CASE("Empty in the middle", "[Allocator]") {
-//	allocator a(100);
-//	a.allocate(24);
-//	auto info = a.storage.getInfo();
-//	std::cout << info.view << '\n';
-//
-//	auto ptr = a.allocate(49);
-//	info = a.storage.getInfo();
-//	std::cout << info.view << '\n';
-//
-//	a.allocate(24);
-//	info = a.storage.getInfo();
-//	std::cout << info.view << '\n';
-//
-//
-//	a.deallocate(ptr);
-//	info = a.storage.getInfo();
-//	std::cout << info.view << '\n';
-//
-//	REQUIRE(info.used_regions == 2);
-//	REQUIRE(info.free_regions == 1);
-//	REQUIRE(info.used_size == 50);
-//	REQUIRE(info.free_size == 50);
-//}
-//
-//TEST_CASE("Overflow", "[Allocator]") {
-//	allocator a(100);
-//	a.allocate(99);
-//
-//	REQUIRE_THROWS_AS(a.allocate(1), std::runtime_error);
-//	const auto info = a.storage.getInfo();
-//	std::cout << info.view << '\n';
-//}
-//
-//TEST_CASE("Allocations", "[Allocator]") {
-//	allocator a(100);
-//
-//	a.allocate(20);
-//	a.allocate(33);
-//	a.allocate(44);
-//
-//	const auto info = a.storage.getInfo();
-//
-//	std::cout << info.view << '\n';
-//}
-//
-//
-//TEST_CASE("Allocate more than exists", "[Allocator]") {
-//	allocator a(100);
-//
-//	REQUIRE_THROWS_AS(a.allocate(256), std::runtime_error);
-//}
+TEST_CASE("Overflow", "[Allocator]") {
+	allocator a(100);
+	a.allocate(99);
+
+	REQUIRE_THROWS_AS(a.allocate(1), std::runtime_error);
+	const auto info = a.storage.getInfo();
+	std::cout << info.view << '\n';
+}
+
+TEST_CASE("Allocations", "[Allocator]") {
+	allocator a(100);
+
+	a.allocate(20);
+	a.allocate(33);
+	a.allocate(44);
+
+	const auto info = a.storage.getInfo();
+
+	std::cout << info.view << '\n';
+}
+
+
+TEST_CASE("Allocate more than exists", "[Allocator]") {
+	allocator a(100);
+
+	REQUIRE_THROWS_AS(a.allocate(256), std::runtime_error);
+}
 
 
 
