@@ -132,10 +132,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Lab3.cpp" />
+    <ClCompile Include="Task1.cpp" />
+    <ClCompile Include="Task2.cpp" />
+    <ClCompile Include="Task3.cpp" />
+    <ClCompile Include="WinApiEz.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Reader.h" />
     <ClInclude Include="Task1.h" />
     <ClInclude Include="Task2.h" />
+    <ClInclude Include="Task3.h" />
+    <ClInclude Include="WinApiEz.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="config.txt" />

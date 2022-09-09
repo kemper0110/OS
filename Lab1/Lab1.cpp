@@ -5,20 +5,7 @@
 #include <ranges>
 #include <vector>
 #include <unordered_map>
-
-#include <tl/generator.hpp>
-#include <tl/adjacent.hpp>
-#include <tl/functional/curry.hpp>
 #include <optional>
-
-//#include "Allocator.h"
-
-//#include "BasicAllocator.h"
-
-//import Allocator;
-//import Bitmap;
-//import LeastSuitable;
-//import Blocklist;
 
 #include "Allocator.h"
 #include "LeastSuitable.h"
@@ -29,47 +16,12 @@
 #include <catch2/catch.hpp>
 
 
-//TEST_CASE("лоль") {
-//
-//
-//}
+template struct LeastSuitable<std::size_t, Bitmap<8>>;
+template struct Allocator<std::size_t, Bitmap<8>, LeastSuitable>;
 
+// extern template LeastSuitable<std::size_t, Bitmap<8>>;
+// extern template Allocator<std::size_t, Bitmap<8>, LeastSuitable>;
 
-//
-//template<
-//	typename Storage,
-//	template<typename> typename Strategy
-//>
-//class BasicAllocator :
-//	public Strategy<Storage>
-//{
-//public:
-//	using Strategy_t = Strategy<Storage>;
-//
-//	BasicAllocator(std::size_t size) : Strategy_t(size) {}
-//
-//	//auto allocate(std::size_t allocation_size) {
-//	//	return allocate(allocation_size);
-//	//}
-//	//auto deallocate(void* ptr) {
-//	//	return deallocate(ptr);
-//	//}
-//	//auto getInfo() {
-//	//	return getInfo();
-//	//}
-//};
-
-
-
-
-//int main() {
-//
-//	Allocator<Bitmap, LeastSuitable> a(100);
-//
-//	const auto ptr = a.allocate(1);
-//	a.deallocate(ptr);
-//
-//}
 
 using allocator = Allocator<std::size_t, Bitmap<8>, LeastSuitable>;
 

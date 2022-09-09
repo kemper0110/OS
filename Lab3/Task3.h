@@ -1,5 +1,4 @@
 #pragma once
-
 #define LEAN_AND_MEAN
 #include <Windows.h>
 #include <iostream>
@@ -9,22 +8,16 @@
 #include <optional>
 #include <filesystem>
 
+namespace fs = std::filesystem;
 
-#include "Reader.h"
+#include "WinApiEz.h"
 
 
-struct Task1
+struct Task3
 {
-	struct Task {
-		std::string name;
-		int time;
-	};
+	std::vector<std::string_view> args;
+	Task3(std::vector<std::string_view>&& args) : args(std::move(args)) {}
+
 	int run();
 };
-
-
-template<>
-std::optional<Task1::Task> read(std::ifstream& ifs);
-
-
 

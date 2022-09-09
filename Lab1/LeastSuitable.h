@@ -41,7 +41,7 @@ struct LeastSuitable;
 
 
 template<typename T, std::size_t BLOCKSIZE>
-struct LeastSuitable<T, Bitmap<BLOCKSIZE>> {
+struct LeastSuitable<T, Bitmap<BLOCKSIZE>>{
 private:
 	static std::size_t ceilSize(std::size_t n) {
 		return ceilBytes(sizeof(T) * n + sizeof(std::size_t));
@@ -86,14 +86,14 @@ public:
 			throw std::runtime_error("not en0ugh memory");
 
 		const auto bitmap_offset = std::distance(bitmap.begin(), best->first);
-		std::cout << "all0cated " << bitmap_size << " at " << bitmap_offset << '\n';
+		assert(std::cout << "all0cated " << bitmap_size << " at " << bitmap_offset << '\n');
 		std::fill_n(best->first, bitmap_size, true);
 
 		auto& memory = allocator()->storage.memory;
 
 		const auto actual_start = reinterpret_cast<std::size_t*>(memory.get(bitmap_offset));
 		*actual_start = size * sizeof(T);	// remember block size in bytes
-		std::cout << "remembered: " << * actual_start << '\n';
+		assert(std::cout << "remembered: " << *actual_start << '\n');
 		const auto data_start = actual_start + 1;
 
 		return reinterpret_cast<T*>(data_start);
@@ -110,7 +110,6 @@ public:
 		const auto data_size = *actual_start;
 
 		const auto bitmap_size = ceilBytes(data_size);
-		//const auto actual_size = data_size + sizeof(std::size_t);
 
 		const auto memory_start = memory.get();	// void*
 		const auto bitmap_offset = (reinterpret_cast<char*>(actual_start) - reinterpret_cast<char*>(memory_start)) / BLOCKSIZE;
@@ -119,8 +118,7 @@ public:
 		std::fill_n(bitmap.begin() + bitmap_offset, bitmap_size, false);
 
 
-		std::cout << "deall0cated " << bitmap_size << " at " << bitmap_offset << '\n';
+		assert(std::cout << "deall0cated " << bitmap_size << " at " << bitmap_offset << '\n');
 	}
 };
-
 

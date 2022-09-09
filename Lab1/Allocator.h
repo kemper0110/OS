@@ -27,21 +27,16 @@ struct Allocator : Strategy<T, Storage> {
 };
 
 
+
 //
 //template<
+//	typename T,
 //	typename Storage,
-//	template<typename> typename Strategy
+//	template<typename, typename> typename Strategy
 //>
 //struct StrategyBase {
-//public:
-//	Allocator<Storage, Strategy<Storage>>* allocator() {
-//		return static_cast<Allocator<Storage, Strategy<Storage>>*>(this);
+//	Allocator<T, Storage, Strategy>* allocator2() {
+//		return static_cast<Allocator<T, Storage, Strategy>*>(this);
 //	}
-//
-//	//Allocator<Storage, LeastSuitable<Storage>>* allocator() {
-//	//	return static_cast<Allocator<Storage, LeastSuitable<Storage>>*>(this);
-//	//}
 //};
-
-
-
+//  : StrategyBase<T, Bitmap<BLOCKSIZE>, LeastSuitable> 
