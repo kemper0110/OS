@@ -18,7 +18,7 @@ struct Bitmap {
 	Memory memory;
 	Bitmap(std::size_t size) : memory(size), bitmap(calcSize(size), false) {}
 	MemoryInfo getInfo() {
-		const auto free = std::ranges::count(bitmap, true);
+		const auto free = std::ranges::count(bitmap, false);
 		const auto allocated = bitmap.size() - free;
 
 		std::string str;

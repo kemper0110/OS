@@ -11,29 +11,10 @@
 
 using namespace boost::intrusive;
 
-//#include <boost/asio.hpp>
-//#include <boost/asio/experimental/as_tuple.hpp>
-//
-//using namespace boost::asio;
-//using namespace experimental;
-//using namespace ip;
-//
-//using default_token = as_tuple_t<use_awaitable_t<>>;
-//using tcp_socket = default_token::as_default_on_t<tcp::socket>;
-
 
 constexpr auto PAGESIZE = 4U;
 
-//struct Page {
-//	static_assert(PAGESIZE % sizeof(int) == 0);
-//	std::array<int, PAGESIZE / sizeof(int)> data;
-//	struct Info {
-//		bool R : 1 = 0,
-//			M : 1 = 0;
-//	} info;
-//};
-
-constexpr auto PAGECOUNT = 2U;
+constexpr auto PAGECOUNT = 4U;
 
 using Page =
 std::array<int, PAGESIZE>;
@@ -124,7 +105,7 @@ public:
 
 			memoryInteruption(info);
 
-			//info.R = 1; info.M = 0;
+			info.R = 1; info.M = 0;
 
 			return ram.pages[info.real][offset];
 		}
@@ -146,7 +127,7 @@ public:
 
 			memoryInteruption(info);
 
-			//info.R = 0; info.M = 1;
+			info.R = 0; info.M = 1;
 
 			ram.pages[info.real][offset] = value;
 		}
@@ -167,7 +148,7 @@ public:
 				info.real << std::setw(4) <<
 				(info.Type ? hdd.pages[info.real][0] : ram.pages[info.real][0])
 				<< std::setw(4) <<
-				(info.R * 10 | info.M) << '\n';
+				(info.R * 10 | (int)info.M) << '\n';
 		}
 		std::cout << "\tqueue: ";
 		for (const auto& info : ram.info.queue)
@@ -175,6 +156,7 @@ public:
 		std::cout << "\n\n";
 	}
 };
+
 
 
 int main()
