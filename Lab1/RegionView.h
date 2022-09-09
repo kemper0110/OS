@@ -17,7 +17,7 @@ struct RegionView : public std::ranges::view_interface<RegionView> {
 		using iter_t = vec_t::iterator;
 		iter_t begin, end;
 
-		void next() {
+		Iterator(vec_t& vec) : bitmap(vec), begin(vec.begin()), end(vec.begin()) {
 			if (begin == bitmap.end() || end == bitmap.end()) {
 				begin = end = bitmap.end();
 				return;
@@ -25,12 +25,13 @@ struct RegionView : public std::ranges::view_interface<RegionView> {
 			begin = std::find(begin, bitmap.end(), false);
 			end = std::find(begin, bitmap.end(), true);
 		}
-
-		Iterator(vec_t& vec) : bitmap(vec), begin(vec.begin()), end(vec.begin()) {
-			next();
-		}
 		Iterator& operator++() {
-			next();
+			if (begin == bitmap.end() || end == bitmap.end()) {
+				begin = end = bitmap.end();
+				return *this;
+			}
+			begin = std::find(begin + 1, bitmap.end(), false);
+			end = std::find(begin, bitmap.end(), true);
 			return *this;
 		}
 		bool operator==(Sentinel) const {

@@ -15,37 +15,46 @@
 //#define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
+struct X {
+	int a, b, c;
+};
 
-//
+
 int main() {
 	using allocator = Allocator<std::size_t, Bitmap<8>, LeastSuitable>;
-
-	allocator a(sizeof(std::size_t) * 50);
+	
+	allocator a(256);	// bytes
 
 	auto info = [&a] {
 		auto info = a.storage.getInfo();
 		std::cout << info.view << '\n';
 		std::cout << "used: " << info.used_size << '\n';
 	};
+	std::vector<std::pair<size_t, size_t>> allocations;
 	while (1) {
-		std::cout << "\n\n1 [size] allocate | 2 [int] deallocate | 3 info\n";
+		std::cout << "\n\n1 [size] allocate | 2 [ptr] deallocate | 3 info\n";
 
 		std::size_t choice, param;
 		std::cin >> choice >> param;
 		switch (choice) {
 		case 1:
 		{
-			auto ptr = a.allocate(param);
-			auto num = (std::size_t)ptr;
-			std::cout << "ptr: " << ptr << '\n';
-			std::cout << "int: " << num << '\n';
-			info();
+			try {
+				auto ptr = a.allocate(param);
+				auto num = (std::size_t)ptr;
+				std::cout << "ptr: " << num << '\n';
+				info();
+			}
+			catch (const std::runtime_error& ex) {
+				std::cout << ex.what() << '\n';
+				info();
+			}
 			break;
 		}
 		case 2:
 		{
 			auto ptr = (void*)param;
-			std::cout << "input ptr: " << ptr << '\n';
+			//std::cout << "input ptr: " << ptr << '\n';
 			a.deallocate(ptr);
 			info();
 			break;

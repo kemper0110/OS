@@ -46,7 +46,7 @@ struct Hdd {
 
 
 class VirtualMemory {
-	constexpr static int REFRESH_TICKS = 3;
+	constexpr static int REFRESH_TICKS = 4;
 
 	Ram ram;
 	Hdd hdd;
