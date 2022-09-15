@@ -94,7 +94,7 @@ public:
 		}
 	}
 
-	int read(std::size_t virtual_address, std::size_t offset) {
+	Page read(std::size_t virtual_address) {
 		if (refresh())
 			clearRM();
 
@@ -107,16 +107,16 @@ public:
 
 			info.R = 1; info.M = 0;
 
-			return ram.pages[info.real][offset];
+			return ram.pages[info.real];
 		}
 		else {
 			std::cout << "memory hit\n";
 			info.R = 1;
-			return ram.pages[info.real][offset];
+			return ram.pages[info.real];
 		}
 	}
 
-	void write(std::size_t virtual_address, std::size_t offset, int value) {
+	void write(std::size_t virtual_address, std::size_t idx, int value) {
 		if (refresh())
 			clearRM();
 
@@ -129,12 +129,12 @@ public:
 
 			info.R = 0; info.M = 1;
 
-			ram.pages[info.real][offset] = value;
+			ram.pages[info.real][idx] = value;
 		}
 		else {
 			std::cout << "memory hit\n";
 			info.M = 1;
-			ram.pages[info.real][offset] = value;
+			ram.pages[info.real][idx] = value;
 		}
 	}
 
@@ -166,18 +166,23 @@ int main()
 
 
 	while (1) {
-		std::cout << "1 [page] to read | 2 [page] [value] to write\n";
-		int choice, page;
-		std::cin >> choice >> page;
+		std::cout << "1 [page] to read | 2 [page] [idx] [value] to write\n";
+		int choice, page_id;
+		std::cin >> choice >> page_id;
 		switch (choice) {
 		case 1:
-			std::cout << vm.read(page, 0);
+		{
+			const auto& page = vm.read(page_id);
+			for (const auto& v : page)
+				std::cout << v << ' ';
+			std::cout << '\n';
 			vm.printInfo();
 			break;
+		}
 		case 2:
-			int value;
-			std::cin >> value;
-			vm.write(page, 0, value);
+			int value, idx;
+			std::cin >> idx >> value;
+			vm.write(page_id, idx, value);
 			vm.printInfo();
 			break;
 		}
