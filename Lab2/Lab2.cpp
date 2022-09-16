@@ -166,20 +166,22 @@ int main()
 
 
 	while (1) {
-		std::cout << "1 [page] to read | 2 [page] [value] to write\n";
-		int choice, page;
-		std::cin >> choice >> page;
+		std::cout << "1 [page] [idx] to read | 2 [page] [idx] [value] to write\n";
+		int choice, page, idx;
+		std::cin >> choice >> page >> idx;
 		switch (choice) {
 		case 1:
-			std::cout << vm.read(page, 0);
+			std::cout << vm.read(page, idx);
 			vm.printInfo();
 			break;
 		case 2:
 			int value;
 			std::cin >> value;
-			vm.write(page, 0, value);
+			vm.write(page, idx, value);
 			vm.printInfo();
 			break;
+		default:
+			std::cout << "bad input\n";
 		}
 	}
 }

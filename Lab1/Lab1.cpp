@@ -24,13 +24,18 @@ int main() {
 	using allocator = Allocator<std::size_t, Bitmap<8>, LeastSuitable>;
 	
 	allocator a(256);	// bytes
+	std::vector<std::pair<size_t, size_t>> allocations;
 
-	auto info = [&a] {
+
+	auto info = [&a, &allocations] {
 		auto info = a.storage.getInfo();
 		std::cout << info.view << '\n';
-		std::cout << "used: " << info.used_size << '\n';
+		std::cout << "used bytes: " << info.used_size << '\n';
+		std::cout << "used blocks: " << info.used_blocks << '\n';
+		for (auto v : allocations)
+			std::cout << v.second << " at " << v.first << " | ";
+		std::cout << "\n";
 	};
-	std::vector<std::pair<size_t, size_t>> allocations;
 	while (1) {
 		std::cout << "\n\n1 [size] allocate | 2 [ptr] deallocate | 3 info\n";
 
@@ -43,6 +48,7 @@ int main() {
 				auto ptr = a.allocate(param);
 				auto num = (std::size_t)ptr;
 				std::cout << "ptr: " << num << '\n';
+				allocations.emplace_back(num, param);
 				info();
 			}
 			catch (const std::runtime_error& ex) {
@@ -56,6 +62,9 @@ int main() {
 			auto ptr = (void*)param;
 			//std::cout << "input ptr: " << ptr << '\n';
 			a.deallocate(ptr);
+			allocations.erase(
+				std::find_if(allocations.begin(), allocations.end(), [param](auto pair) { return pair.first == param; })
+			);
 			info();
 			break;
 		}
@@ -66,7 +75,7 @@ int main() {
 			break;
 		}
 		default: 
-			std::cin.ignore(32768);
+			//std::cin.ignore(32768);
 			break;
 		}
 	}

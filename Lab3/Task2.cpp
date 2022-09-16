@@ -6,24 +6,69 @@ int Task2::run() {
 		return -1;
 
 	const auto path = args[1];
+	/*
+		#define FILE_NOTIFY_CHANGE_FILE_NAME    0x00000001   
+		#define FILE_NOTIFY_CHANGE_DIR_NAME     0x00000002   
+		#define FILE_NOTIFY_CHANGE_ATTRIBUTES   0x00000004   
+		#define FILE_NOTIFY_CHANGE_SIZE         0x00000008   
+		#define FILE_NOTIFY_CHANGE_LAST_WRITE   0x00000010   
+		#define FILE_NOTIFY_CHANGE_LAST_ACCESS  0x00000020   
+		#define FILE_NOTIFY_CHANGE_CREATION     0x00000040   
+		#define FILE_NOTIFY_CHANGE_SECURITY     0x00000100  
+	*/
 
-	while (1) {
+	const auto run_all = [&path] {
 		for (const auto& entry : fs::directory_iterator(fs::path(path))) {
 			if (entry.is_directory())
 				continue;
 			const auto filepath = entry.path();
-			std::wcout << "trying: " << filepath << '\n';
+			std::cout << "running: " << filepath.string() << '\n';
 			const auto ext = filepath.extension();
 
-			if (ext != "bat" && ext != "exe" && ext != "cmd")
+			//std::cout << ext << '\n';
+			const auto isExecutable = ext == ".bat" || ext == ".exe" || ext == ".cmd";
+			if (not isExecutable)
 				continue;
 
 			std::cout << std::endl;	// flush
-			auto str = filepath.string();
-			auto quoted = "\"" + str + "\"";
-			std::system(str.c_str());
+			auto quoted = "\"" + filepath.string() + "\"";
+			//std::cout << "system: " << quoted << '\n';
+			std::system(quoted.c_str());
+			fs::remove(filepath);
+		}
+	};
 
-			std::remove(filepath.string().c_str());
+	run_all();
+
+
+	const auto handle = FindFirstChangeNotificationA(args[1].data(), FALSE, FILE_NOTIFY_CHANGE_FILE_NAME);
+	if (INVALID_HANDLE_VALUE == handle) {
+		std::cout << "FindFirstChangeNotification function failed\n";
+		std::exit(GetLastError());
+	}
+
+
+	while (true) {
+		std::cout << "waiting notifications\n";
+
+		const auto wait_status = WaitForSingleObject(handle, INFINITE);
+
+		switch (wait_status) {
+		case WAIT_OBJECT_0:
+			run_all();
+
+			if (FindNextChangeNotification(handle) == FALSE) {
+				std::cout << "FindNextChangeNotification error\n";
+				std::exit(GetLastError());
+			}
+			break;
+		default:
+			std::cout << "wait error\n";
+			std::exit(GetLastError());
+		}
+	}
+		
+
 
 			//STARTUPINFO si = { .cb = sizeof(si) };
 			//PROCESS_INFORMATION pi{};
@@ -45,13 +90,8 @@ int Task2::run() {
 			//WaitForSingleObject(pi.hProcess, INFINITE);
 			//CloseHandle(pi.hThread);
 			//CloseHandle(pi.hProcess);
-		}
-
-		// on windows there is now inotify so go to sleep
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-	}
-
-
+		//}
+	//	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	return 0;
 }
 

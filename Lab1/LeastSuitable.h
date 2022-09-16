@@ -51,6 +51,7 @@ private:
 			std::lldiv(n, BLOCKSIZE)
 		};
 		return quot + (rem == 0 ? 0 : 1);
+		//return quot + (rem > 0);
 	}
 public:
 	auto allocator() {
@@ -79,7 +80,7 @@ public:
 				continue;
 			}
 			const auto best_distance = std::distance(best->first, best->second);
-			if (distance < best_distance)
+			if (distance > best_distance)
 				best.emplace(begin, end);
 		}
 

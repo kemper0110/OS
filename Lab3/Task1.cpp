@@ -3,13 +3,7 @@
 #include "WinApiEz.h"
 
 //extern template void read<Task1::Task>(std::ifstream&);
-/*
-template struct LeastSuitable<std::size_t, Bitmap<8>>;
-template struct Allocator<std::size_t, Bitmap<8>, LeastSuitable>;
 
-// extern template LeastSuitable<std::size_t, Bitmap<8>>;
-// extern template Allocator<std::size_t, Bitmap<8>, LeastSuitable>;
-*/
 
 
 template<>
@@ -37,6 +31,8 @@ int Task1::run() {
 
 
 	for (const auto& task : tasks) {
+		std::cout << task.name << " in " << task.time << " : ";
+
 		STARTUPINFOA si = { .cb = sizeof(si) };
 		PROCESS_INFORMATION pi{};
 		const auto createStatus = CreateProcessA(task.name.c_str(), NULL, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
