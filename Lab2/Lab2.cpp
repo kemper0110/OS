@@ -23,13 +23,13 @@ struct Ram {
 	struct InfoBlock {
 		struct PageInfo : public slist_base_hook<cache_last<true>> {
 			enum : bool {
-				RAM = 0b0,
-				HDD = 0b1,
+				RAM = false,
+				HDD = true,
 			};
 			bool
-				R : 1 = 0,
-				M : 1 = 0,
-				Type : 1;
+				R : 1 = false,
+				M : 1 = false,
+				Type : 1 = RAM;
 			std::size_t real{};
 		};
 		std::array<PageInfo, 2 * PAGECOUNT> table;
@@ -58,12 +58,12 @@ class VirtualMemory {
 	void clearRM() {
 		for (auto& info : ram.info.table)
 			if (info.Type == info.RAM)
-				info.R = info.M = 0;
+				info.R = info.M = false;
 	}
 
-	void memoryInteruption(Ram::InfoBlock::PageInfo& info) {
+	void memoryInterruption(Ram::InfoBlock::PageInfo& info) {
 		while (ram.info.queue.front().R) {
-			ram.info.queue.front().R = 0;
+			ram.info.queue.front().R = false;
 			ram.info.queue.shift_forward();
 		}
 
@@ -73,7 +73,7 @@ class VirtualMemory {
 		std::swap(hdd.pages[info.real], ram.pages[oldest.real]);
 
 		oldest.Type = oldest.HDD;
-		oldest.R = oldest.M = 0;
+		oldest.R = oldest.M = false;
 
 		info.Type = info.RAM;
 		std::swap(info.real, oldest.real);
@@ -103,9 +103,9 @@ public:
 		if (info.Type == info.HDD) {
 			std::cout << "memory miss\n";
 
-			memoryInteruption(info);
+			memoryInterruption(info);
 
-			info.R = 1; info.M = 0;
+			info.R = true; info.M = false;
 
 			return ram.pages[info.real];
 		}
@@ -125,7 +125,7 @@ public:
 		if (info.Type == info.HDD) {
 			std::cout << "memory miss\n";
 
-			memoryInteruption(info);
+			memoryInterruption(info);
 
 			info.R = 0; info.M = 1;
 
@@ -167,18 +167,22 @@ int main()
 
 	while (1) {
 		std::cout << "1 [page] [idx] to read | 2 [page] [idx] [value] to write\n";
-		int choice, page, idx;
-		std::cin >> choice >> page >> idx;
+		int choice, page_id, idx;
+		std::cin >> choice >> page_id >> idx;
 		switch (choice) {
 		case 1:
-			std::cout << vm.read(page, 0);
+		{
+			const auto& page = vm.read(page_id);
+			for (auto v : page)
+				std::cout << v << ' ';
+			std::cout << '\n';
 			vm.printInfo();
 			break;
 		}
 		case 2:
 			int value;
 			std::cin >> value;
-			vm.write(page, 0, value);
+			vm.write(page_id, idx, value);
 			vm.printInfo();
 			break;
 		default:

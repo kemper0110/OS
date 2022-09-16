@@ -21,7 +21,7 @@ struct X {
 
 
 int main() {
-	using allocator = Allocator<std::size_t, Bitmap<8>, LeastSuitable>;
+	using allocator = Allocator<char, Bitmap<4>, LeastSuitable>;
 	
 	allocator a(256);	// bytes
 	std::vector<std::pair<size_t, size_t>> allocations;
