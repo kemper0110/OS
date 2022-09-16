@@ -94,7 +94,7 @@ public:
 		}
 	}
 
-	int read(std::size_t virtual_address, std::size_t offset) {
+	Page read(std::size_t virtual_address) {
 		if (refresh())
 			clearRM();
 
@@ -107,16 +107,16 @@ public:
 
 			info.R = 1; info.M = 0;
 
-			return ram.pages[info.real][offset];
+			return ram.pages[info.real];
 		}
 		else {
 			std::cout << "memory hit\n";
 			info.R = 1;
-			return ram.pages[info.real][offset];
+			return ram.pages[info.real];
 		}
 	}
 
-	void write(std::size_t virtual_address, std::size_t offset, int value) {
+	void write(std::size_t virtual_address, std::size_t idx, int value) {
 		if (refresh())
 			clearRM();
 
@@ -129,12 +129,12 @@ public:
 
 			info.R = 0; info.M = 1;
 
-			ram.pages[info.real][offset] = value;
+			ram.pages[info.real][idx] = value;
 		}
 		else {
 			std::cout << "memory hit\n";
 			info.M = 1;
-			ram.pages[info.real][offset] = value;
+			ram.pages[info.real][idx] = value;
 		}
 	}
 
@@ -171,13 +171,14 @@ int main()
 		std::cin >> choice >> page >> idx;
 		switch (choice) {
 		case 1:
-			std::cout << vm.read(page, idx);
+			std::cout << vm.read(page, 0);
 			vm.printInfo();
 			break;
+		}
 		case 2:
 			int value;
 			std::cin >> value;
-			vm.write(page, idx, value);
+			vm.write(page, 0, value);
 			vm.printInfo();
 			break;
 		default:
