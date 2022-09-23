@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <random>
 #include <iomanip>
 #include <vector>
 #include <ranges>
@@ -8,8 +9,6 @@
 
 #include <boost/intrusive/slist.hpp>
 #include <boost/intrusive/options.hpp>
-
-//using namespace boost::intrusive;
 
 using boost::intrusive::cache_last;
 
@@ -54,7 +53,7 @@ class VirtualMemory {
 	std::size_t ticks = 0;
 
 	bool refresh() {
-		return (++ticks %= (REFRESH_TICKS + 1)) == REFRESH_TICKS;
+		return (++ticks %= REFRESH_TICKS) == 0;
 	}
 	void clearRM() {
 		for (auto& info : ram.info.table)
@@ -112,7 +111,7 @@ public:
 		}
 		else {
 			std::cout << "memory hit\n";
-			info.R = 1;
+			info.R = true;
 			return ram.pages[info.real];
 		}
 	}
@@ -128,13 +127,13 @@ public:
 
 			memoryInterruption(info);
 
-			info.R = 0; info.M = 1;
+			info.R = false; info.M = true;
 
 			ram.pages[info.real][idx] = value;
 		}
 		else {
 			std::cout << "memory hit\n";
-			info.M = 1;
+			info.M = true;
 			ram.pages[info.real][idx] = value;
 		}
 	}
@@ -154,21 +153,80 @@ public:
 		std::cout << "\tqueue: ";
 		for (const auto& info : ram.info.queue)
 			std::cout << info.real << ' ';
+		std::cout << "\nticks: " << ticks;
 		std::cout << "\n\n";
 	}
 };
 
 
+void autotest();
+void ui();
 
 int main()
 {
+	//autotest();
+	ui();
+}
+
+auto getRandom(auto begin_inclusive, auto end_inclusive) {
+	return [gen = std::random_device(),
+		distr = std::uniform_int_distribution<decltype(begin_inclusive)>(begin_inclusive, end_inclusive)]() mutable {
+		return distr(gen);
+	};
+}
+
+int fuzzing() {
+	VirtualMemory vm;
+
+	auto getRndPage =
+		getRandom(0, 2 * PAGECOUNT - 1);
+	auto getRndIdx =
+		getRandom(0, PAGESIZE - 1);
+	auto getRndMove =
+		getRandom(0, 1);
+	auto getRndValue =
+		getRandom(1, 999);
+
+	try {
+		for (int i = 0; i < 1'000; ++i) {
+			const auto page = getRndPage();
+			const auto idx = getRndIdx();
+			const auto move = getRndMove();
+			const auto value = getRndValue();
+			switch (move) {
+			case 0:
+			{
+				auto [[maybe_unused]] v = vm.read(page).at(idx);
+				break;
+			}
+			case 1:
+				vm.write(page, idx, value);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	catch (std::exception& ex) {
+		std::cout << ex.what() << '\n';
+		return -1;
+	}
+	return 0;
+}
+
+void autotest() {
+	std::cout << fuzzing() << '\n';
+}
+
+
+void ui() {
 	VirtualMemory vm;
 	vm.printInfo();
 
 	while (1) {
-		std::cout << "1 [page] [idx] to read | 2 [page] [idx] [value] to write\n";
-		int choice, page_id, idx;
-		std::cin >> choice >> page_id >> idx;
+		std::cout << "1 [page] to read | 2 [page] [idx] [value] to write\n";
+		int choice, page_id;
+		std::cin >> choice >> page_id;
 		switch (choice) {
 		case 1:
 		{
@@ -180,8 +238,8 @@ int main()
 			break;
 		}
 		case 2:
-			int value;
-			std::cin >> value;
+			int value, idx;
+			std::cin >> idx >> value; 
 			vm.write(page_id, idx, value);
 			vm.printInfo();
 			break;

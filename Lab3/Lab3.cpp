@@ -24,7 +24,7 @@ std::vector<std::string_view> normalize(int argc, char** argv) {
 int main(int argc, char** argv)
 {
 	std::system("chcp 1251 && cls");
-	//return Task1().run();
+	return Task1().run();
 	//return Task2(normalize(argc, argv)).run();
-	return Task3(normalize(argc, argv)).run();
+	//return Task3(normalize(argc, argv)).run();
 }
