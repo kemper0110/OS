@@ -2,6 +2,7 @@
 #include <iostream>
 #include <list>
 #include <bitset>
+#include <bit>
 #include <algorithm>
 #include <numeric>
 #include <vector>
@@ -75,7 +76,13 @@ struct Range {
 	struct Iterator;
 
 
-	struct Iterator {
+	struct Iterator : std::input_iterator_tag {
+		using difference_type = std::ptrdiff_t;
+		using value_type = int;
+		using pointer = int*;
+		using reference = int;
+		using iterator_category = std::input_iterator_tag;
+
 		friend Sentinel;
 		int value, end;
 		Iterator(int begin, int end) : value(begin), end(end) {}
@@ -84,57 +91,120 @@ struct Range {
 			return *this;
 		}
 		int operator*() { return value; }
-		bool operator==(Sentinel s) { return value == end; }
-		bool operator!=(Sentinel s) { return value != end; }
+		friend bool operator==(const Iterator& it, const Sentinel& s) { return it.value == it.end; }
 	};
-	struct Sentinel{
-		bool operator==(const Iterator& it) {
-			return it.value == it.end;
-		}
-		bool operator!=(const Iterator& it) {
-			return it.value != it.end;
-		}
-	};
+	struct Sentinel {};
 
 	Iterator begin() { return { m_begin, m_end }; }
 	Sentinel end() { return {}; }
 };
 
 
-template <class _Ty1, class _Ty2>
-concept equal_nequal =
-	//requires(const std::remove_reference_t<_Ty1>&__x, const std::remove_reference_t<_Ty2>&__y) {
-	requires(_Ty1 __x, _Ty2 __y) {
-		{ __x == __y } -> std::_Boolean_testable;
-		{ __x != __y } -> std::_Boolean_testable;
+template <class T>
+class my_allocator
+{
+	char data[50U * sizeof T]{};
+	std::vector<bool> bitmap = std::vector<bool>(50, false);
+
+public:
+	typedef unsigned int size_type;
+	typedef signed int difference_type;
+	typedef T value_type;
+
+	using propagate_on_container_move_assignment = std::true_type;
+
+	template <class U>
+	struct rebind { typedef my_allocator<U> other; };
+
+	my_allocator() = default;
+
+	template <class U>
+	my_allocator(const my_allocator<U>&) {
+
+	}
+	template <class U>
+	my_allocator<T>& operator=(const my_allocator<U>&) {
+		return *this;
+	}
+
+	T* allocate(size_type n) {
+		std::cout << "from " << this << '\n';
+		auto begin = bitmap.begin(), end = bitmap.begin();
+		while (1) {
+			begin = std::find(end, bitmap.end(), false);
+			end = std::find(begin, bitmap.end(), true);
+			const auto size = std::distance(begin, end);
+
+			if (size >= n )
+				break;
+			// || end == bitmap.end()
+			if (begin == bitmap.end())
+				return nullptr;
+		}
+
+		std::fill_n(begin, n, true);
+		const auto offset = std::distance(bitmap.begin(), begin);
+
+		const auto ptr = reinterpret_cast<T*>(data) + offset;
+		std::cout << ptr << '\n';
+		return ptr;
+	}
+	void deallocate(T* ptr, size_t n) {
+		const auto offset = ptr - reinterpret_cast<T*>(data);
+		std::fill_n(bitmap.begin() + offset, n, false);
+	}
+
 };
+
+
+
 
 int main() {
 
-	for (int v : Range{ 0, 10 }) {
-		std::cout << v << '\n';
-	}
+	//my_allocator<std::pair<int, int*>> alloc;
 
-	Range r{ 0, 10 };
+	//std::cout << alloc.allocate(1) << '\n';
+	//std::cout << alloc.allocate(1) << '\n';
+	//std::cout << alloc.allocate(1) << '\n';
+	//std::cout << alloc.allocate(1) << '\n';
+
+
+	std::list<int, my_allocator<int>> list;
+
+	list.push_back(1);
+	list.push_back(2);
+	list.push_back(3);
+
+	for (auto v : list)
+		std::cout << v << '\n';
+
+	//for (int v : Range{ 0, 10 }) {
+	//	std::cout << v << '\n';
+	//}
+
+	//Range r{ 0, 10 };
 	//std::ranges::for_each(r.begin(), r.end(), [](auto v) {
 	//	std::cout << v << '\n';
 	//	});
 
-	auto beg = r.begin();
+	//auto beg = r.begin();
 
-	Range::Sentinel s{};
-	beg == s;
-	s == beg;
-	beg != s;
-	s != beg;
+	//Range::Sentinel s{};
+	//beg == s;
+	//s == beg;
+	//beg != s;
+	//s != beg;
 
-	constexpr bool v1 = std::sentinel_for<Range::Sentinel, Range::Iterator>;
-	constexpr bool v2 = std::semiregular<Range::Sentinel>;
-	constexpr bool v3 = std::_Weakly_equality_comparable_with<Range::Sentinel, Range::Iterator>;
-	constexpr bool v4 = std::_Half_equality_comparable<Range::Sentinel, Range::Iterator>;
 
-	//semiregular<_Se>
-	//	&& input_or_output_iterator<_It>
-	//	&& _Weakly_equality_comparable_with<_Se, _It>;
+
+	//constexpr bool v1 = std::sentinel_for<Range::Sentinel, Range::Iterator>;
+
+
+
+	//constexpr bool v_1 = std::input_or_output_iterator<Range::Iterator>;
+	//constexpr bool v__1 = std::indirectly_readable<Range::Iterator>;
+	//constexpr bool v_2 = std::weakly_incrementable<Range::Iterator>;
+	//constexpr bool v_3 = std::_Signed_integer_like<std::iter_difference_t<Range::Iterator>>;
+
 
 }

@@ -9,8 +9,9 @@
 #include <boost/intrusive/slist.hpp>
 #include <boost/intrusive/options.hpp>
 
-using namespace boost::intrusive;
+//using namespace boost::intrusive;
 
+using boost::intrusive::cache_last;
 
 constexpr auto PAGESIZE = 4U;
 
@@ -21,7 +22,7 @@ std::array<int, PAGESIZE>;
 
 struct Ram {
 	struct InfoBlock {
-		struct PageInfo : public slist_base_hook<cache_last<true>> {
+		struct PageInfo : public boost::intrusive::slist_base_hook<cache_last<true>> {
 			enum : bool {
 				RAM = false,
 				HDD = true,
@@ -33,7 +34,7 @@ struct Ram {
 			std::size_t real{};
 		};
 		std::array<PageInfo, 2 * PAGECOUNT> table;
-		slist<PageInfo, cache_last<true>> queue;
+		boost::intrusive::slist<PageInfo, cache_last<true>> queue;
 	}
 	info;
 	std::array<Page, PAGECOUNT> pages{};
@@ -61,24 +62,24 @@ class VirtualMemory {
 				info.R = info.M = false;
 	}
 
-	void memoryInterruption(Ram::InfoBlock::PageInfo& info) {
+	void memoryInterruption(Ram::InfoBlock::PageInfo& requested_page_info) {
 		while (ram.info.queue.front().R) {
 			ram.info.queue.front().R = false;
 			ram.info.queue.shift_forward();
 		}
 
-		auto& oldest = ram.info.queue.front();
+		auto& oldest_page_info = ram.info.queue.front();
 		ram.info.queue.pop_front();
 
-		std::swap(hdd.pages[info.real], ram.pages[oldest.real]);
+		std::swap(hdd.pages[requested_page_info.real], ram.pages[oldest_page_info.real]);
 
-		oldest.Type = oldest.HDD;
-		oldest.R = oldest.M = false;
+		oldest_page_info.Type = oldest_page_info.HDD;
+		oldest_page_info.R = oldest_page_info.M = false;
+		requested_page_info.Type = requested_page_info.RAM;
 
-		info.Type = info.RAM;
-		std::swap(info.real, oldest.real);
+		std::swap(requested_page_info.real, oldest_page_info.real);
 
-		ram.info.queue.push_back(info);
+		ram.info.queue.push_back(requested_page_info);
 	}
 public:
 	VirtualMemory() {
@@ -163,7 +164,6 @@ int main()
 {
 	VirtualMemory vm;
 	vm.printInfo();
-
 
 	while (1) {
 		std::cout << "1 [page] [idx] to read | 2 [page] [idx] [value] to write\n";

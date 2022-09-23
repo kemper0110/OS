@@ -8,7 +8,7 @@ int main()
 	const auto mutex = CreateMutex(NULL, FALSE, NULL);
 	if (mutex == NULL) {
 		std::cout << "Mutex error: " << GetLastError();
-		exit(-1);
+		std::exit(-1);
 	}
 
 	const auto wait_status = WaitForSingleObject(mutex, INFINITE);
@@ -19,13 +19,16 @@ int main()
 		// do something
 		if (!ReleaseMutex(mutex)) {
 			std::cout << "Can't release mutex: " << GetLastError();
-			exit(-1);
+			std::exit(-1);
 		}
 		break;
 	case WAIT_ABANDONED:
 		// mutex has been closed
 		std::cout << "Mutex error: " << GetLastError();
-		exit(-1);
+		std::exit(-1);
+	default:
+		std::cout << "err\n";
+		std::exit(-1);
 	}
 
 	ReleaseMutex(mutex);
