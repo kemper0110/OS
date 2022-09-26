@@ -21,9 +21,10 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{debcb52b-f05b-4210-ab7e-ba0af72a1a84}</ProjectGuid>
-    <RootNamespace>Lab4</RootNamespace>
+    <ProjectGuid>{86add05d-239a-4b1f-81e9-ac340813943a}</ProjectGuid>
+    <RootNamespace>Lab4Signaler</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Lab4Sender</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -129,11 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Lab3\WinApiEz.cpp" />
-    <ClCompile Include="Lab4.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\Lab3\WinApiEz.h" />
+    <ClCompile Include="Lab4Sender.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

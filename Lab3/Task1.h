@@ -16,7 +16,7 @@
 struct Task1
 {
 	struct Task {
-		std::string name;
+		std::wstring name;
 		int time;
 	};
 	int run();
@@ -24,7 +24,7 @@ struct Task1
 
 
 template<>
-std::optional<Task1::Task> read(std::ifstream& ifs);
+std::optional<Task1::Task> read(std::wifstream& ifs);
 
 
 

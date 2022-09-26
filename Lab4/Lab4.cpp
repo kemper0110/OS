@@ -1,38 +1,50 @@
 ﻿#define LEAN_AND_MEAN
 #include <Windows.h>
-
 #include <iostream>
+#include <string>
+#include <fstream>
+
+
+template<class Lambda>
+struct defer : Lambda {
+	~defer() { Lambda::operator()(); }
+};
+
 
 int main()
 {
-	const auto mutex = CreateMutex(NULL, FALSE, NULL);
+	std::system("chcp 65001 && cls");
+
+	const auto mutex = CreateMutex(NULL, FALSE, L"Lab4ConsoleMutex");
+	defer d{
+		[mutex] {
+			CloseHandle(mutex);
+			std::cout << "mutex closed\n";
+		}
+	};
+
 	if (mutex == NULL) {
 		std::cout << "Mutex error: " << GetLastError();
 		std::exit(-1);
 	}
 
-	const auto wait_status = WaitForSingleObject(mutex, INFINITE);
-
-	switch (wait_status) {
-	case WAIT_OBJECT_0:
-		std::cout << "X\n";
-		// do something
-		if (!ReleaseMutex(mutex)) {
-			std::cout << "Can't release mutex: " << GetLastError();
-			std::exit(-1);
+	std::wifstream ifs("text.txt");
+	std::wstring str;
+	while (std::getline(ifs, str)) {
+		// lock
+		const auto wait_status = WaitForSingleObject(mutex, INFINITE);
+		if (wait_status == WAIT_OBJECT_0) {
+			std::wcout << str << '\n';
+			Sleep(500);
+			// unlock
+			ReleaseMutex(mutex);
 		}
-		break;
-	case WAIT_ABANDONED:
-		// mutex has been closed
-		std::cout << "Mutex error: " << GetLastError();
-		std::exit(-1);
-	default:
-		std::cout << "err\n";
-		std::exit(-1);
+		else
+			std::cout << "error\n";
 	}
-
-	ReleaseMutex(mutex);
-
-	CloseHandle(mutex);
-
 }
+
+
+//std::cout << "Can't release mutex: " << GetLastError();
+//std::exit(-1);
+//}

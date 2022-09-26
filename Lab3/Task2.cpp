@@ -22,19 +22,42 @@ int Task2::run() {
 			if (entry.is_directory())
 				continue;
 			const auto filepath = entry.path();
-			std::cout << "running: " << filepath.string() << '\n';
+			std::cout << "trying: " << filepath.string() << '\n';
+
 			const auto ext = filepath.extension();
 
-			//std::cout << ext << '\n';
-			const auto isExecutable = ext == ".bat" || ext == ".exe" || ext == ".cmd";
-			if (not isExecutable)
-				continue;
 
-			std::cout << std::endl;	// flush
-			auto quoted = "\"" + filepath.string() + "\"";
-			//std::cout << "system: " << quoted << '\n';
-			std::system(quoted.c_str());
+			STARTUPINFO si = { .cb = sizeof(si) };
+			PROCESS_INFORMATION pi{};
+			BOOL createStatus = true;
+			if (ext == ".bat" || ext == ".cmd") {
+				auto str = L"cmd.exe /C " + filepath.wstring();
+				createStatus = CreateProcess(NULL, str.data(), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+			}
+			else if (ext == ".exe") {
+				createStatus = CreateProcess(filepath.wstring().c_str(), NULL, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+			}
+			else continue;
+
+			if (createStatus == 0) {
+				std::cout << "error: " << getError() << '\n';
+				continue;
+			}
+			const auto waitStatus = WaitForSingleObject(pi.hProcess, INFINITE);
+			switch (waitStatus) {
+			case WAIT_OBJECT_0:
+				std::cout << "process got in time\n";
+				break;
+			case WAIT_FAILED:
+				std::cout << "error: " << getError() << '\n';
+				continue;
+			}
+			CloseHandle(pi.hThread);
+			CloseHandle(pi.hProcess);
+
 			fs::remove(filepath);
+			
+			std::cout << "Executed and removed\n";
 		}
 	};
 

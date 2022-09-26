@@ -2,14 +2,11 @@
 
 #include "WinApiEz.h"
 
-//extern template void read<Task1::Task>(std::ifstream&);
-
-
 
 template<>
-std::optional<Task1::Task> read(std::ifstream& ifs) {
-	return read<std::string>(ifs).and_then(
-		[&ifs](std::string&& str) {
+std::optional<Task1::Task> read(std::wifstream& ifs) {
+	return read<std::wstring>(ifs).and_then(
+		[&ifs](std::wstring&& str) {
 			return read<int>(ifs).transform(
 				[&str](int time) {
 					return Task1::Task{ std::move(str), time };
@@ -21,7 +18,7 @@ int Task1::run() {
 
 	std::vector<Task> tasks;
 	{
-		std::ifstream ifs("config.txt");
+		std::wifstream ifs("config.txt");
 		for (auto task = read<Task>(ifs); 
 			task.has_value(); 
 			task = read<Task>(ifs))
@@ -31,11 +28,11 @@ int Task1::run() {
 
 
 	for (const auto& task : tasks) {
-		std::cout << task.name << " in " << task.time << " : ";
+		std::wcout << task.name << " in " << task.time << " : ";
 
-		STARTUPINFOA si = { .cb = sizeof(si) };
+		STARTUPINFO si = { .cb = sizeof(si) };
 		PROCESS_INFORMATION pi{};
-		const auto createStatus = CreateProcessA(task.name.c_str(), NULL, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+		const auto createStatus = CreateProcess(task.name.c_str(), NULL, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
 		if (createStatus == 0) {
 			std::cout << getError() << '\n';
 			continue;

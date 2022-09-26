@@ -40,8 +40,6 @@ int Task3::run() {
 	};
 	PROCESS_INFORMATION pi{};
 
-	//std::string cmd(path);
-
 	auto cmd = (std::wstringstream() << path.data()).str();
 
 	const auto inherit = TRUE;
