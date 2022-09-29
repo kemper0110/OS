@@ -1,7 +1,4 @@
-﻿#define LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
-#include <functional>
+﻿#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <thread>
@@ -9,7 +6,16 @@
 #include <vector>
 #include <cassert>
 
+#include <sdkddkver.h>
+#include <boost/asio.hpp>
 
+namespace asio = boost::asio;
+using asio::use_awaitable, asio::detached;
+namespace this_coro = asio::this_coro;
+
+#define LEAN_AND_MEAN
+//#define NOMINMAX
+#include <Windows.h>
 
 
 //
@@ -32,12 +38,8 @@
 //	return timer;
 //}
 
-
-
 //VOID CALLBACK TimerAPCProc(LPVOID, DWORD, DWORD);
 //void chargeTimerEx(HANDLE timer, long long time_ms);
-
-
 
 //struct Timer {
 //private:
@@ -84,22 +86,22 @@
 //};
 
 
-
-void setTimeout(long long time_ms, VOID (*cb)(LPVOID, DWORD, DWORD)) {
-	const auto handle = CreateWaitableTimerEx(NULL, NULL, NULL, TIMER_ALL_ACCESS);
-	if (handle == NULL) {
-		std::cout << "timer error\n";
-		std::exit(1);
-	}
-	const auto time = LARGE_INTEGER{
-		.QuadPart = -10000LL * time_ms
-	};
-	if (!SetWaitableTimerEx(handle, &time, 0, cb, NULL, NULL, NULL)) {
-		std::cout << "set timer error\n";
-		std::exit(2);
-	}
-	CloseHandle(handle);
-}
+//
+//void setTimeout(long long time_ms, VOID(*cb)(LPVOID, DWORD, DWORD)) {
+//	const auto handle = CreateWaitableTimerEx(NULL, NULL, NULL, TIMER_ALL_ACCESS);
+//	if (handle == NULL) {
+//		std::cout << "timer error\n";
+//		std::exit(1);
+//	}
+//	const auto time = LARGE_INTEGER{
+//		.QuadPart = -10000LL * time_ms
+//	};
+//	if (!SetWaitableTimerEx(handle, &time, 0, cb, NULL, NULL, NULL)) {
+//		std::cout << "set timer error\n";
+//		std::exit(2);
+//	}
+//	CloseHandle(handle);
+//}
 
 
 struct Semaphore {
@@ -110,17 +112,16 @@ struct Semaphore {
 
 	bool acquire() {
 		const auto status = WaitForSingleObject(handle, NULL);
-		std::cout << status << '\n';
 		switch (status) {
 		case WAIT_TIMEOUT:
 			return false;
 		case WAIT_OBJECT_0:
 			return true;
 		case WAIT_ABANDONED_0:
-			throw "abandoned";
+			throw std::runtime_error("abandoned");
 			break;
 		case WAIT_FAILED:
-			throw "wait failed";
+			throw std::runtime_error("wait failed");
 			break;
 		default: throw status;
 		}
@@ -128,14 +129,13 @@ struct Semaphore {
 	LONG release(int count = 1) {
 		LONG prev_count;
 		if (!ReleaseSemaphore(handle, count, &prev_count))
-			throw "release error";
+			throw std::runtime_error("release error");
 		return prev_count;
 	}
 };
 
 
-constexpr auto arrivalTime = 10'000;
-constexpr auto fillingTime = 40'000;
+
 
 
 Semaphore semaphore(4, 4);
@@ -147,34 +147,83 @@ void print() {
 	std::cout << std::setw(10) << missed << std::setw(10) << served << std::setw(10) << serving << '\n';
 }
 
-VOID CALLBACK deleteCar(LPVOID, DWORD, DWORD)
-{
-	semaphore.release();
-	++served;
-	--serving;
-	print();
-}
-VOID CALLBACK newCar(LPVOID, DWORD, DWORD) 
-{
-	if (not semaphore.acquire())
-		++missed;
-	else {
+//VOID CALLBACK deleteCar(LPVOID, DWORD, DWORD)
+//{
+//	semaphore.release();
+//	++served;
+//	--serving;
+//	print();
+//}
+//VOID CALLBACK newCar(LPVOID, DWORD, DWORD)
+//{
+//	if (not semaphore.acquire())
+//		++missed;
+//	else {
+//		++serving;
+//		setTimeout(fillingTime, deleteCar);
+//	}
+//	print();
+//	setTimeout(arrivalTime, newCar);
+//}
+
+
+constexpr auto arrivalTime = 5'000;
+constexpr auto fillingTime = 20'000;
+
+asio::awaitable<void> fill_car() {
+	try {
 		++serving;
-		setTimeout(fillingTime, deleteCar);
+		asio::deadline_timer filling_timer(co_await this_coro::executor, boost::posix_time::milliseconds(fillingTime));
+		co_await filling_timer.async_wait(use_awaitable);
+		semaphore.release();
+		--serving;
+		++served;
+		std::cout << std::setw(15) << "\ncar filled\n";
+		print();
 	}
-	print();
-	setTimeout(arrivalTime, newCar);
+	catch (const std::exception& ex) {
+		std::cout << "fill car error: " << ex.what() << '\n';
+		co_return;
+	}
 }
+
+
+asio::awaitable<void> car_spawner() {
+	try {
+		auto executor = co_await this_coro::executor;
+		for (;;) {
+			asio::deadline_timer car_timer(executor, boost::posix_time::milliseconds(arrivalTime));
+			co_await car_timer.async_wait(use_awaitable);
+
+			if (semaphore.acquire()) 
+				asio::co_spawn(executor, fill_car(), detached);
+			else 
+				++missed;
+			std::cout << std::setw(15) << "\ncar arrived\n";
+			print();
+		}
+	}
+	catch (const std::exception& ex) {
+		std::cout << "car spawner error: " << ex.what() << '\n';
+		co_return;
+	}
+}
+
 
 int main()
 {
-	std::system("chcp 1251 && cls");
-	//std::cout << std::this_thread::get_id() << '\n';
+	asio::io_context ctx{ 1 };
+	asio::co_spawn(ctx, car_spawner(), detached);
+	ctx.run();
 
-	setTimeout(arrivalTime, newCar);
 
-	while (1)
-		SleepEx(INFINITE, TRUE);
+	//std::system("chcp 1251 && cls");
+	////std::cout << std::this_thread::get_id() << '\n';
+
+	//setTimeout(arrivalTime, newCar);
+
+	//while (1)
+	//	SleepEx(INFINITE, TRUE);
 
 	//std::vector<HANDLE> handles{
 	//	timer100, timer450, timer500, timer1200
