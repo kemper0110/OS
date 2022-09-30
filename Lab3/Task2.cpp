@@ -22,7 +22,7 @@ int Task2::run() {
 			if (entry.is_directory())
 				continue;
 			const auto filepath = entry.path();
-			std::cout << "trying: " << filepath.string() << '\n';
+			std::cout << "\ntrying: " << filepath.string() << '\n';
 
 			const auto ext = filepath.extension();
 
@@ -57,7 +57,7 @@ int Task2::run() {
 
 			fs::remove(filepath);
 			
-			std::cout << "Executed and removed\n";
+			std::cout << "Executed and removed\n\n";
 		}
 	};
 

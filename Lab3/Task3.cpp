@@ -1,11 +1,14 @@
 #include "Task3.h"
 
 
-// run with ipconfig
+// run with ping
 int Task3::run() {
+	SetConsoleOutputCP(CP_UTF8);
+	SetConsoleCP(CP_UTF8);
+
+	std::system("chcp 866 && cls");
 	if (args.size() != 2)
 		return -1;
-
 	const auto path = args[1];
 
 
@@ -24,7 +27,7 @@ int Task3::run() {
 		NULL);
 	const auto input_handle = CreateFile(L"input.txt",
 		0,
-		FILE_SHARE_READ,
+		FILE_SHARE_WRITE | FILE_SHARE_READ,
 		&sa,
 		OPEN_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL,
