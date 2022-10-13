@@ -11,18 +11,19 @@ struct defer : Lambda {
 int main()
 {
 	std::system("chcp 65001 && cls");
-	const auto event = CreateEvent(NULL, TRUE, FALSE, L"Lab4Signal");
+	const auto event = CreateEvent(NULL, FALSE, FALSE, L"Lab4Signal");
 	if (event == NULL) {
 		std::cout << "Mutex error: " << GetLastError();
 		std::exit(-1);
 	}
 	defer d{ [event] { CloseHandle(event); } };
 
-
-	std::cout << "any key to signal\n";
-	std::cin.get();
-	if (SetEvent(event) == 0) {
-		std::cout << "error\n";
-		std::exit(-1);
+	while (1) {
+		std::cout << "any key to signal\n";
+		std::cin.get();
+		if (SetEvent(event) == 0) {
+			std::cout << "error\n";
+			std::exit(-1);
+		}
 	}
 }
