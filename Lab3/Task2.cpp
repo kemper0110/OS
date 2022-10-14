@@ -1,21 +1,12 @@
 #include "Task2.h"
 
-// run with C:\Users\danil\source\repos\OS\Lab3\target
+// run with 
+// C:\Users\danil\source\repos\kemper0110\OS\Lab3\target
 int Task2::run() {
 	if (args.size() != 2)
 		return -1;
 
 	const auto path = args[1];
-	/*
-		#define FILE_NOTIFY_CHANGE_FILE_NAME    0x00000001   
-		#define FILE_NOTIFY_CHANGE_DIR_NAME     0x00000002   
-		#define FILE_NOTIFY_CHANGE_ATTRIBUTES   0x00000004   
-		#define FILE_NOTIFY_CHANGE_SIZE         0x00000008   
-		#define FILE_NOTIFY_CHANGE_LAST_WRITE   0x00000010   
-		#define FILE_NOTIFY_CHANGE_LAST_ACCESS  0x00000020   
-		#define FILE_NOTIFY_CHANGE_CREATION     0x00000040   
-		#define FILE_NOTIFY_CHANGE_SECURITY     0x00000100  
-	*/
 
 	const auto run_all = [&path] {
 		for (const auto& entry : fs::directory_iterator(fs::path(path))) {
@@ -46,7 +37,7 @@ int Task2::run() {
 			const auto waitStatus = WaitForSingleObject(pi.hProcess, INFINITE);
 			switch (waitStatus) {
 			case WAIT_OBJECT_0:
-				std::cout << "process got in time\n";
+				std::cout << "process done\n";
 				break;
 			case WAIT_FAILED:
 				std::cout << "error: " << getError() << '\n';

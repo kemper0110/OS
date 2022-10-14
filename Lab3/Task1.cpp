@@ -15,7 +15,6 @@ std::optional<Task1::Task> read(std::wifstream& ifs) {
 };
 
 int Task1::run() {
-
 	std::vector<Task> tasks;
 	{
 		std::wifstream ifs("config.txt");
@@ -40,14 +39,14 @@ int Task1::run() {
 		const auto waitStatus = WaitForSingleObject(pi.hProcess, task.time * 1000);
 		switch (waitStatus) {
 		case WAIT_OBJECT_0:
-			std::cout << "process got in time\n";
+			std::cout << "процесс уложился во времени\n";
 			break;
 		case WAIT_TIMEOUT:
-			std::cout << "process got timeout\n";
+			std::cout << "процесс не уложился во времени\n";
 			break;
 		case WAIT_FAILED:
 			std::cout << getError() << '\n';
-			continue;
+			break;
 		}
 		TerminateProcess(pi.hProcess, 0);
 		CloseHandle(pi.hThread);
