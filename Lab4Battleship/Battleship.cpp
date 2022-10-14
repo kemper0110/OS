@@ -24,18 +24,19 @@ void Battleship::play()
 
 	const auto fire = [this] {
 		while (true) {
+			print();
+			Sleep(2000);
+
+			std::cout << "firing\n";
+
 			const auto move = makeRandomMove();
-			Sleep(100);
+			std::cout << "I fire: " << move.target << '\n';
 			send(move);
-			Sleep(100);
 			if (isDefeated() or isWon()) return 1;
 			auto response = receive();
-			print();
-			std::cout << "firing\n";
-			Sleep(2000);
 			if (response.reason == response.Beaten) {
 				defeatedCount++;
-				std::cout << "I hit\n";
+				std::cout << "I hit " << response.target << '\n';
 			}
 			else {
 				std::cout << "I missed\n";
@@ -47,15 +48,16 @@ void Battleship::play()
 
 	const auto defense = [this] {
 		while (true) {
-			Sleep(100);
+			print();
+			Sleep(2000);
+			std::cout << "defensing\n";
+
 			if (isDefeated() or isWon()) return 1;
 			auto move = receive();
-			print();
-			std::cout << "defensing\n";
-			Sleep(2000);
 			assert(move.target < FIELD_SIZE&& move.target >= 0);
+			std::cout << "He fires: " << move.target << '\n';
 			if (field[move.target] == Ship) {
-				//std::cout << "He Hit\n";
+				std::cout << "He Hit " << move.target << '\n';
 				field[move.target] = FiredShip;
 				move.reason = move.Beaten;
 				send(move);
@@ -90,8 +92,13 @@ void Battleship::play()
 
 Battleship::Battleship()
 {
-	for (auto i = 0UL; i < SHIP_COUNT; ++i)
-		field[distr(rnd)] = Cell::Ship;
+	field.fill(Cell::Empty);
+	for (auto i = 0UL; i < SHIP_COUNT; )
+		if (auto idx = distr(rnd); field[idx] == Cell::Empty) {
+			field[idx] = Cell::Ship;
+			++i;
+		}
+	std::cout << std::count(field.begin(), field.end(), Cell::Ship) << " ships\n";
 
 	std::deque<size_t> indices(FIELD_SIZE);
 	std::iota(indices.begin(), indices.end(), 0);

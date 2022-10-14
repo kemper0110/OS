@@ -10,7 +10,9 @@
 
 int main()
 {
-	std::unique_ptr<Battleship> battleship = std::make_unique<PipeBattleship>();
+	std::system("chcp 1251 && cls");
+	std::unique_ptr<Battleship> battleship = std::make_unique<SharedBattleship>();
+	//std::unique_ptr<Battleship> battleship = std::make_unique<PipeBattleship>();
 
 	battleship->play();
 

@@ -38,13 +38,7 @@ protected:
 	};
 	int player;
 	bool ended = false;
-	std::array<Cell, FIELD_SIZE> field{
-		Empty, Ship, Empty, Ship, Empty,
-		Empty, Empty, Ship, Empty, Ship,
-		Empty, Ship, Empty, Ship, Empty,
-		Empty, Empty, Ship, Empty, Ship,
-		Empty, Ship, Empty, Ship, Empty,
-	};
+	std::array<Cell, FIELD_SIZE> field;
 	std::queue<size_t> strategy;
 	//std::array<Cell, FIELD_SIZE> EnemyField;
 

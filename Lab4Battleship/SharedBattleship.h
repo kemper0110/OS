@@ -15,11 +15,16 @@ class SharedBattleship :
     struct SharedState{
         Message message{};
         std::atomic_bool startup = false;
-        
+
+        //std::atomic_bool must_read;
         std::mutex message_mtx;
-        std::binary_semaphore sending = std::binary_semaphore{ 1 };
-        std::binary_semaphore receiving = std::binary_semaphore{ 1 };
-        std::binary_semaphore pending[2]{
+        //std::binary_semaphore sending = std::binary_semaphore{ 1 };
+        //std::binary_semaphore receiving = std::binary_semaphore{ 1 };
+        std::binary_semaphore sended[2] = {
+            std::binary_semaphore{1},
+            std::binary_semaphore{1}
+        };
+        std::binary_semaphore received[2] = {
             std::binary_semaphore{1},
             std::binary_semaphore{1}
         };

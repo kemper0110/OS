@@ -77,15 +77,21 @@ void SharedBattleship::send(const Message& message)
 {
 	std::cout << "sending\n";
 
-	shared->sending.acquire();
+	//shared->sending.acquire();
 
-	shared->pending[!player].acquire();
+	//shared->pending[!player].acquire();
+
+	// пока не прочитали, не отправляем
+	shared->received[!player].acquire();
+
+	//shared->sended[player].acquire();
 
 	shared->message_mtx.lock();
 	shared->message = message;
 	shared->message_mtx.unlock();
 
-	shared->sending.release();
+
+	//shared->sending.release();
 	//if (SetEvent(event) == 0) {
 	//	std::cout << "set event error: ";
 	//	perror(GetLastError());
@@ -97,15 +103,21 @@ SharedBattleship::Message SharedBattleship::receive()
 {
 	std::cout << "receiving\n";
 
-	shared->receiving.acquire();
+	//shared->receiving.acquire();
 
-	shared->pending[player].release();
+	//shared->pending[player].release();
+
+	// пока не отправили, не читаем
+	shared->sended[player].acquire();
 
 	shared->message_mtx.lock();
 	const auto m = shared->message;
 	shared->message_mtx.unlock();
 
-	shared->receiving.release();
+	//shared->received[player].release();
+
+
+	//shared->receiving.release();
 
 	//while(shared->receiving)
 	//const auto wait_status = WaitForSingleObject(event, INFINITE);
