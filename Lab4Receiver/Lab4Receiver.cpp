@@ -46,7 +46,7 @@ int main()
 {
 	std::system("chcp 65001 && cls");
 
-	const auto event = CreateEvent(NULL, TRUE, FALSE, L"Lab4Signal");
+	const auto event = CreateEvent(NULL, FALSE, FALSE, L"Lab4Signal");
 
 	if (event == NULL) {
 		std::cout << "Event error: " << GetLastError();
@@ -55,12 +55,15 @@ int main()
 	defer d{ [event] { CloseHandle(event); } };
 
 
-	std::cout << "waiting event\n";
-	const auto wait_status = WaitForSingleObject(event, INFINITE);
 
-	if (wait_status == WAIT_OBJECT_0) 
-		printGeometry();
-	else
-		std::cout << "error\n";
+	while (1) {
+		std::cout << "waiting event\n";
+		const auto wait_status = WaitForSingleObject(event, INFINITE);
+		if (wait_status == WAIT_OBJECT_0)
+			printGeometry();
+		else
+			std::cout << "error\n";
+	}
+
 }
 
