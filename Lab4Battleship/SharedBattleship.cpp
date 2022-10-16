@@ -17,12 +17,20 @@
 
 SharedBattleship::SharedBattleship()
 {
+	receivedEvent = CreateEvent(NULL, TRUE, FALSE, L"BattleshipReceivedEvent");
+	if (not receivedEvent) {
+		std::cout << "received evt error: ";
+		perror(GetLastError());
+		std::exit(-1);
+	}
+	sendedEvent = CreateEvent(NULL, FALSE, FALSE, L"BattleshipSendedEvent");
+	if (not sendedEvent) {
+		std::cout << "sended evt error: ";
+		perror(GetLastError());
+		std::exit(-1);
+	}
 	//event = CreateEvent(NULL, FALSE, FALSE, L"BattleshipEvent");
-	//if (not event) {
-	//	std::cout << "Event error: ";
-	//	perror(GetLastError());
-	//	std::exit(-1);
-	//}
+
 	_filemapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof SharedState, L"BattleshipSharedState");
 	const auto code = GetLastError();
 	std::cout << (code == ERROR_ALREADY_EXISTS) << '\n';
@@ -73,24 +81,45 @@ bool SharedBattleship::waitBeginning()
 	}
 }
 
+// интерфейс - какой функционал реализует класс
+// стандарт на взаимодействие двух и более частей
+// с чем совместим и какие операции
 void SharedBattleship::send(const Message& message)
 {
 	std::cout << "sending\n";
-
 	//shared->sending.acquire();
-
 	//shared->pending[!player].acquire();
-
-	// пока не прочитали, не отправляем
-	shared->received[!player].acquire();
-
+	//shared->received[!player].acquire();
 	//shared->sended[player].acquire();
 
+
+	// пока флаг оппонента выставлен, не выставляем его флаг
+	
+	// atomic 
+	 while (shared->pending[!player]);
+	// sema
+	//shared->pending[!player].acquire();
+
+	// когда флаг сброшен, пишем
 	shared->message_mtx.lock();
 	shared->message = message;
 	shared->message_mtx.unlock();
 
+	// когда написали, выставляем флаг
+	// atomic
+	shared->pending[!player] = true;
+	// sema
+	//shared->pending[!player].release();
 
+	/*if (WaitForSingleObject(receivedEvent, INFINITE) != WAIT_OBJECT_0) {
+	std::cout << "wait event error: ";
+	perror(GetLastError());
+	std::exit(1);
+	}*/
+
+
+	//ResetEvent(receivedEvent);
+	//SetEvent(sendedEvent);
 	//shared->sending.release();
 	//if (SetEvent(event) == 0) {
 	//	std::cout << "set event error: ";
@@ -103,22 +132,41 @@ SharedBattleship::Message SharedBattleship::receive()
 {
 	std::cout << "receiving\n";
 
-	//shared->receiving.acquire();
 
-	//shared->pending[player].release();
 
-	// пока не отправили, не читаем
-	shared->sended[player].acquire();
+	// пока флаг не выставили, ожидаем
+	// atomic
+	while (not shared->pending[player]);
+	
+	// semaphore
+	//shared->pending[player].acquire();
+	
+	// когда выставили, читаем
 
 	shared->message_mtx.lock();
 	const auto m = shared->message;
 	shared->message_mtx.unlock();
 
+	// когда прочитали, сбрасываем флаг
+	// atomic
+	shared->pending[player] = false;
+	// semaphore
+	//shared->pending[player].release();
+
+	//shared->receiving.acquire();
+//shared->pending[player].release();
+//shared->sended[player].acquire();
+
+//if (WaitForSingleObject(sendedEvent, INFINITE) != WAIT_OBJECT_0) {
+//	std::cout << "wait event error: ";
+//	perror(GetLastError());
+//	std::exit(1);
+//}
+	//ResetEvent(sendedEvent);
+	//SetEvent(receivedEvent);
+
 	//shared->received[player].release();
-
-
 	//shared->receiving.release();
-
 	//while(shared->receiving)
 	//const auto wait_status = WaitForSingleObject(event, INFINITE);
 	//if (wait_status != WAIT_OBJECT_0) {

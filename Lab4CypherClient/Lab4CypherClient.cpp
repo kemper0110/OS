@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <fstream>
 #define LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -29,11 +30,23 @@ int main()
 		std::exit(1);
 	}
 
+	std::cout << "0: cmd\n1:file\n";
+	int state;
+	std::cin >> state;
 
-	std::string input;
-	std::cin >> input;
+
+	std::string message;
+	if (state == 0) {
+		std::cin >> message;
+	}
+	else {
+		std::string file;
+		std::cin >> file;
+		std::ifstream ifs(file);
+		std::copy(std::istreambuf_iterator<char>(ifs), {}, std::back_inserter(message));
+	}
 	DWORD written;
-	const auto write_status = WriteFile(pipe, input.c_str(), input.size() * sizeof(input[0]), &written, FALSE);
+	const auto write_status = WriteFile(pipe, message.c_str(), message.size() * sizeof(message[0]), &written, FALSE);
 	if (not write_status) {
 		std::cout << "write error: " << GetLastError();
 		std::exit(2);
@@ -47,7 +60,14 @@ int main()
 		std::cout << "write error: " << GetLastError();
 		std::exit(3);
 	}
-	std::cout << std::string_view(buffer, read) << '\n';
+	const auto response = std::string_view(buffer, read);
+	if (state == 0) {
+		std::cout << response << '\n';
+	}
+	else {
+		std::ofstream ofs("encrypted.txt", std::ios::trunc);
+		std::copy(response.begin(), response.end(), std::ostreambuf_iterator<char>(ofs));
+	}
 
 	CloseHandle(pipe);
 }

@@ -18,6 +18,10 @@ namespace this_coro = asio::this_coro;
 #include <Windows.h>
 
 
+#include <Semaphore.h>
+
+
+
 //
 //void chargeTimer(HANDLE timer, long long time_ms) {
 //	constexpr auto ms = 10000LL;
@@ -104,41 +108,9 @@ namespace this_coro = asio::this_coro;
 //}
 
 
-struct Semaphore {
-	HANDLE handle;
-	Semaphore(int init, int max) {
-		handle = CreateSemaphore(NULL, init, max, NULL);
-	}
-
-	bool acquire() {
-		const auto status = WaitForSingleObject(handle, NULL);
-		switch (status) {
-		case WAIT_TIMEOUT:
-			return false;
-		case WAIT_OBJECT_0:
-			return true;
-		case WAIT_ABANDONED_0:
-			throw std::runtime_error("abandoned");
-			break;
-		case WAIT_FAILED:
-			throw std::runtime_error("wait failed");
-			break;
-		default: throw status;
-		}
-	}
-	LONG release(int count = 1) {
-		LONG prev_count;
-		if (!ReleaseSemaphore(handle, count, &prev_count))
-			throw std::runtime_error("release error");
-		return prev_count;
-	}
-};
 
 
-
-
-
-Semaphore semaphore(4, 4);
+Semaphore sem   aphore(4, 4);
 
 int missed = 0, served = 0, serving = 0;
 
@@ -167,8 +139,8 @@ void print() {
 //}
 
 
-constexpr auto arrivalTime = 5'000;
-constexpr auto fillingTime = 20'000;
+constexpr auto arrivalTime = 3'000;
+constexpr auto fillingTime = 15'000;
 
 asio::awaitable<void> fill_car() {
 	try {
@@ -217,85 +189,86 @@ int main()
 	ctx.run();
 
 
-	//std::system("chcp 1251 && cls");
-	////std::cout << std::this_thread::get_id() << '\n';
 
-	//setTimeout(arrivalTime, newCar);
-
-	//while (1)
-	//	SleepEx(INFINITE, TRUE);
-
-	//std::vector<HANDLE> handles{
-	//	timer100, timer450, timer500, timer1200
-	//};
-
-	//while (1) {
-	//	const auto status = WaitForMultipleObjects(handles.size(), handles.data(), FALSE, INFINITE);
-
-	//	if (status == WAIT_FAILED) {
-	//		std::cout << "wait error\n";
-	//		std::exit(-1);
-	//	}
-	//	if (status == WAIT_TIMEOUT) {
-	//		std::cout << "timeout error\n";
-	//		std::exit(-1);
-	//	}
-	//	
-	//	// WAIT_OBJECT_0 to (WAIT_OBJECT_0 + nCount– 1)
-	//	const auto waited = status - WAIT_OBJECT_0;
-	//	if (waited >= 0 and waited < handles.size()) {
-	//		const auto handle = handles[waited];
-
-	//		//CancelWaitableTimer(handle);
-	//		if (handle == timer100) {
-	//			std::cout << "100\n";
-	//			chargeTimer(handle, 100);
-	//		}
-	//		else if (handle == timer450) 
-	//		{
-	//			std::cout << "450\n";
-	//			chargeTimer(handle, 450);
-	//		}
-	//		else if (handle == timer500) 
-	//		{
-	//			std::cout << "500\n";
-	//			chargeTimer(handle, 500);
-	//		}
-	//		else if (handle == timer1200) 
-	//		{
-	//			std::cout << "1200\n";
-	//			chargeTimer(handle, 1200);
-	//		}
-	//		continue;
-	//	}
-	//	// WAIT_ABANDONED_0 to (WAIT_ABANDONED_0 + nCount– 1)
-	//	//const auto abandoned = status - WAIT_ABANDONED_0;
-	//	//if (waited >= 0 and waited < handles.size()) {
-	//	//	const auto handle = handles[waited];
-	//	//	if (handle == timer450)
-	//	//		std::cout << "450 abandoned\n";
-	//	//	else if (handle == timer500)
-	//	//		std::cout << "500 abandoned\n";
-	//	//	else if (handle == timer1200)
-	//	//		std::cout << "1200 abandoned\n";
-	//	//	continue;
-	//	//}
-	//}
-
-
-	//while (1) {
-	//	int input;
-	//	std::cin >> input;	
-	//	switch (input) {
-	//	case 1:
-	//		std::cout << WaitForSingleObject(semaphor, 0) << '\n';
-	//		break;
-	//	case -1:
-	//		std::cout << ReleaseSemaphore(semaphor, 1, NULL) << '\n';
-	//		break;
-	//	default: continue;
-	//	}
-	//}
 
 }
 
+//std::system("chcp 1251 && cls");
+////std::cout << std::this_thread::get_id() << '\n';
+
+//setTimeout(arrivalTime, newCar);
+
+//while (1)
+//	SleepEx(INFINITE, TRUE);
+
+//std::vector<HANDLE> handles{
+//	timer100, timer450, timer500, timer1200
+//};
+
+//while (1) {
+//	const auto status = WaitForMultipleObjects(handles.size(), handles.data(), FALSE, INFINITE);
+
+//	if (status == WAIT_FAILED) {
+//		std::cout << "wait error\n";
+//		std::exit(-1);
+//	}
+//	if (status == WAIT_TIMEOUT) {
+//		std::cout << "timeout error\n";
+//		std::exit(-1);
+//	}
+//	
+//	// WAIT_OBJECT_0 to (WAIT_OBJECT_0 + nCount– 1)
+//	const auto waited = status - WAIT_OBJECT_0;
+//	if (waited >= 0 and waited < handles.size()) {
+//		const auto handle = handles[waited];
+
+//		//CancelWaitableTimer(handle);
+//		if (handle == timer100) {
+//			std::cout << "100\n";
+//			chargeTimer(handle, 100);
+//		}
+//		else if (handle == timer450) 
+//		{
+//			std::cout << "450\n";
+//			chargeTimer(handle, 450);
+//		}
+//		else if (handle == timer500) 
+//		{
+//			std::cout << "500\n";
+//			chargeTimer(handle, 500);
+//		}
+//		else if (handle == timer1200) 
+//		{
+//			std::cout << "1200\n";
+//			chargeTimer(handle, 1200);
+//		}
+//		continue;
+//	}
+//	// WAIT_ABANDONED_0 to (WAIT_ABANDONED_0 + nCount– 1)
+//	//const auto abandoned = status - WAIT_ABANDONED_0;
+//	//if (waited >= 0 and waited < handles.size()) {
+//	//	const auto handle = handles[waited];
+//	//	if (handle == timer450)
+//	//		std::cout << "450 abandoned\n";
+//	//	else if (handle == timer500)
+//	//		std::cout << "500 abandoned\n";
+//	//	else if (handle == timer1200)
+//	//		std::cout << "1200 abandoned\n";
+//	//	continue;
+//	//}
+//}
+
+
+//while (1) {
+//	int input;
+//	std::cin >> input;	
+//	switch (input) {
+//	case 1:
+//		std::cout << WaitForSingleObject(semaphor, 0) << '\n';
+//		break;
+//	case -1:
+//		std::cout << ReleaseSemaphore(semaphor, 1, NULL) << '\n';
+//		break;
+//	default: continue;
+//	}
+//}

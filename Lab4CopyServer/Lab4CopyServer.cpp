@@ -2,7 +2,10 @@
 #include <Windows.h>
 #include <iostream>
 #include <string_view>
+#include <filesystem>
 
+
+namespace fs = std::filesystem;
 
 /*
 		Написать процесс, осуществляющий копирование файлов (сервер
@@ -56,7 +59,21 @@ int main() {
 				perror(code);
 				break;
 			}
-			std::cout << std::string_view(buff, cbRead) << '\n';
+			const auto input = std::string_view(buff, cbRead);
+			const auto delim = input.find(';');
+			if (delim == std::string_view::npos) {
+				std::cout << "required 2 pathes with `;` delim\n";
+				break;
+			}
+			const auto src = fs::path(input.substr(0, delim));
+			std::cout << "src: " << src << '\n';
+			if (not fs::exists(src)) {
+				std::cout << src << " - not exists\n";
+				break;
+			}
+			const auto dst = fs::path(input.substr(delim + 1));
+			std::cout << "dst: " << dst << '\n';
+			fs::copy_file(src, dst);
 		}
 	}
 

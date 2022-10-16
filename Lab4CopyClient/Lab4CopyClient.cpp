@@ -26,8 +26,12 @@ int main()
 
 
 	while (1) {
-		std::wstring message;
-		std::wcin >> message;
+		std::cout << "intput = src;dst\n";
+		//std::string src, dst;
+		//std::cin >> src >> dst;
+		//std::string message = src + ";" + dst;
+		std::string message;
+		std::cin >> message;
 		DWORD written;
 		const auto write_status = WriteFile(pipe, message.c_str(), message.size() * sizeof(message[0]), &written, FALSE);
 		if (not write_status) {

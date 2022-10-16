@@ -118,7 +118,7 @@ Battleship::Message Battleship::makeRandomMove()
 
 void Battleship::print()
 {
-	//std::system("cls");
+	std::system("cls");
 	for (int row = 0; row < 5; ++row) {
 		for (int col = 0; col < 5; ++col)
 			std::cout << field[row * 5 + col];

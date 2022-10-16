@@ -16,9 +16,16 @@ int main()
 
 	battleship->play();
 
-
-
 	std::cout << "game ended\n";
+	if (battleship->isWon())
+		std::cout << "We won\n";
+	else
+		std::cout << "We losed\n";
+	if (battleship->isDefeated())
+		std::cout << "We have been defeated\n";
+	else
+		std::cout << "They have been defeated\n";
+
 	/*
 		--	First player
 		wait until second player enters
