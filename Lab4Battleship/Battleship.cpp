@@ -98,7 +98,6 @@ Battleship::Battleship()
 			field[idx] = Cell::Ship;
 			++i;
 		}
-	std::cout << std::count(field.begin(), field.end(), Cell::Ship) << " ships\n";
 
 	std::deque<size_t> indices(FIELD_SIZE);
 	std::iota(indices.begin(), indices.end(), 0);

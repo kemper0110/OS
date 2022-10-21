@@ -110,7 +110,7 @@ namespace this_coro = asio::this_coro;
 
 
 
-Semaphore sem   aphore(4, 4);
+Semaphore semaphore(4, 4);
 
 int missed = 0, served = 0, serving = 0;
 

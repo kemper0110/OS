@@ -53,8 +53,10 @@ SharedBattleship::SharedBattleship()
 	}
 
 	const auto s_ptr = reinterpret_cast<SharedState*>(_shared);
-	if (player == 0)
+	if (player == 0) {
 		shared = std::construct_at(s_ptr);
+		//shared->pending[0].acquire();
+	}
 	else
 		shared = s_ptr;
 	std::cout << shared << '\n';
@@ -84,6 +86,7 @@ bool SharedBattleship::waitBeginning()
 // интерфейс - какой функционал реализует класс
 // стандарт на взаимодействие двух и более частей
 // с чем совместим и какие операции
+
 void SharedBattleship::send(const Message& message)
 {
 	std::cout << "sending\n";
@@ -96,9 +99,9 @@ void SharedBattleship::send(const Message& message)
 	// пока флаг оппонента выставлен, не выставляем его флаг
 	
 	// atomic 
-	 while (shared->pending[!player]);
+	//while (shared->pending[!player]);
 	// sema
-	//shared->pending[!player].acquire();
+	shared->pending[!player].acquire();
 
 	// когда флаг сброшен, пишем
 	shared->message_mtx.lock();
@@ -107,9 +110,9 @@ void SharedBattleship::send(const Message& message)
 
 	// когда написали, выставляем флаг
 	// atomic
-	shared->pending[!player] = true;
+	//shared->pending[!player] = true;
 	// sema
-	//shared->pending[!player].release();
+	shared->pending[!player].release();
 
 	/*if (WaitForSingleObject(receivedEvent, INFINITE) != WAIT_OBJECT_0) {
 	std::cout << "wait event error: ";
@@ -136,10 +139,9 @@ SharedBattleship::Message SharedBattleship::receive()
 
 	// пока флаг не выставили, ожидаем
 	// atomic
-	while (not shared->pending[player]);
-	
-	// semaphore
-	//shared->pending[player].acquire();
+	//while (not shared->pending[player]);
+	// sema
+	shared->pending[player].acquire();
 	
 	// когда выставили, читаем
 
@@ -149,9 +151,9 @@ SharedBattleship::Message SharedBattleship::receive()
 
 	// когда прочитали, сбрасываем флаг
 	// atomic
-	shared->pending[player] = false;
+	//shared->pending[player] = false;
 	// semaphore
-	//shared->pending[player].release();
+	shared->pending[player].release();
 
 	//shared->receiving.acquire();
 //shared->pending[player].release();

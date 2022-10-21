@@ -189,104 +189,104 @@ HANDLE hPipe;
 
 int main() {
 
-    // Create one event object for the connect operation. 
+    //// Create one event object for the connect operation. 
 
-    const auto hConnectEvent = CreateEvent(
-        NULL,    // default security attribute
-        TRUE,    // manual reset event 
-        TRUE,    // initial state = signaled 
-        NULL);   // unnamed event object 
+    //const auto hConnectEvent = CreateEvent(
+    //    NULL,    // default security attribute
+    //    TRUE,    // manual reset event 
+    //    TRUE,    // initial state = signaled 
+    //    NULL);   // unnamed event object 
 
-    if (hConnectEvent == NULL)
-    {
-        printf("CreateEvent failed with %d.\n", GetLastError());
-        return 0;
-    }
+    //if (hConnectEvent == NULL)
+    //{
+    //    printf("CreateEvent failed with %d.\n", GetLastError());
+    //    return 0;
+    //}
 
-    OVERLAPPED oConnect = {};
-    oConnect.hEvent = hConnectEvent;
+    //OVERLAPPED oConnect = {};
+    //oConnect.hEvent = hConnectEvent;
 
-    // Call a subroutine to create one instance, and wait for 
-    // the client to connect. 
+    //// Call a subroutine to create one instance, and wait for 
+    //// the client to connect. 
 
-    BOOL fPendingIO = CreateAndConnectInstance(&oConnect);
+    //BOOL fPendingIO = CreateAndConnectInstance(&oConnect);
 
-    while (1)
-    {
-        // Wait for a client to connect, or for a read or write 
-        // operation to be completed, which causes a completion 
-        // routine to be queued for execution. 
+    //while (1)
+    //{
+    //    // Wait for a client to connect, or for a read or write 
+    //    // operation to be completed, which causes a completion 
+    //    // routine to be queued for execution. 
 
-        DWORD dwWait = WaitForSingleObjectEx(
-            hConnectEvent,  // event object to wait for 
-            INFINITE,       // waits indefinitely 
-            TRUE);          // alertable wait enabled 
+    //    DWORD dwWait = WaitForSingleObjectEx(
+    //        hConnectEvent,  // event object to wait for 
+    //        INFINITE,       // waits indefinitely 
+    //        TRUE);          // alertable wait enabled 
 
-        switch (dwWait)
-        {
-            // The wait conditions are satisfied by a completed connect 
-            // operation. 
-        case 0:
-            // If an operation is pending, get the result of the 
-            // connect operation. 
+    //    switch (dwWait)
+    //    {
+    //        // The wait conditions are satisfied by a completed connect 
+    //        // operation. 
+    //    case 0:
+    //        // If an operation is pending, get the result of the 
+    //        // connect operation. 
 
-            if (fPendingIO)
-            {
-                DWORD cbRet;
-                BOOL fSuccess = GetOverlappedResult(
-                    hPipe,     // pipe handle 
-                    &oConnect, // OVERLAPPED structure 
-                    &cbRet,    // bytes transferred 
-                    FALSE);    // does not wait 
-                if (!fSuccess)
-                {
-                    printf("ConnectNamedPipe (%d)\n", GetLastError());
-                    return 0;
-                }
-            }
+    //        if (fPendingIO)
+    //        {
+    //            DWORD cbRet;
+    //            BOOL fSuccess = GetOverlappedResult(
+    //                hPipe,     // pipe handle 
+    //                &oConnect, // OVERLAPPED structure 
+    //                &cbRet,    // bytes transferred 
+    //                FALSE);    // does not wait 
+    //            if (!fSuccess)
+    //            {
+    //                printf("ConnectNamedPipe (%d)\n", GetLastError());
+    //                return 0;
+    //            }
+    //        }
 
-            // Allocate storage for this instance. 
+    //        // Allocate storage for this instance. 
 
-            const auto lpPipeInst = (LPPIPEINST)GlobalAlloc(
-                GPTR, sizeof(PIPEINST));
-            if (lpPipeInst == NULL)
-            {
-                printf("GlobalAlloc failed (%d)\n", GetLastError());
-                return 0;
-            }
+    //        const auto lpPipeInst = (LPPIPEINST)GlobalAlloc(
+    //            GPTR, sizeof(PIPEINST));
+    //        if (lpPipeInst == NULL)
+    //        {
+    //            printf("GlobalAlloc failed (%d)\n", GetLastError());
+    //            return 0;
+    //        }
 
-            lpPipeInst->hPipeInst = hPipe;
+    //        lpPipeInst->hPipeInst = hPipe;
 
-            // Start the read operation for this client. 
-            // Note that this same routine is later used as a 
-            // completion routine after a write operation. 
+    //        // Start the read operation for this client. 
+    //        // Note that this same routine is later used as a 
+    //        // completion routine after a write operation. 
 
-            lpPipeInst->cbToWrite = 0;
-            CompletedWriteRoutine(0, 0, (LPOVERLAPPED)lpPipeInst);
+    //        lpPipeInst->cbToWrite = 0;
+    //        CompletedWriteRoutine(0, 0, (LPOVERLAPPED)lpPipeInst);
 
-            // Create new pipe instance for the next client. 
+    //        // Create new pipe instance for the next client. 
 
-            fPendingIO = CreateAndConnectInstance(
-                &oConnect);
-            break;
+    //        fPendingIO = CreateAndConnectInstance(
+    //            &oConnect);
+    //        break;
 
-            // The wait is satisfied by a completed read or write 
-            // operation. This allows the system to execute the 
-            // completion routine. 
+    //        // The wait is satisfied by a completed read or write 
+    //        // operation. This allows the system to execute the 
+    //        // completion routine. 
 
-        case WAIT_IO_COMPLETION:
-            break;
+    //    case WAIT_IO_COMPLETION:
+    //        break;
 
-            // An error occurred in the wait function. 
+    //        // An error occurred in the wait function. 
 
-        default:
-        {
-            printf("WaitForSingleObjectEx (%d)\n", GetLastError());
-            return 0;
-        }
-        }
-    }
-    return 0;
+    //    default:
+    //    {
+    //        printf("WaitForSingleObjectEx (%d)\n", GetLastError());
+    //        return 0;
+    //    }
+    //    }
+    //}
+    //return 0;
 
 }
 
