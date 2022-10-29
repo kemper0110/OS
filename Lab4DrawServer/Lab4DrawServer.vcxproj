@@ -89,7 +89,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>../Semaphore;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../Semaphore;../;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>../Semaphore;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../Semaphore;../;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,7 +121,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>../Semaphore;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../Semaphore;../;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +137,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>../Semaphore;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../Semaphore;../;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,6 +150,9 @@
     <ClCompile Include="Lab4DrawServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Lab4DrawLibrary\Lab4DrawLibrary.vcxproj">
+      <Project>{9b629456-9c2d-4caf-84bc-c49a22205843}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Semaphore\Semaphore.vcxproj">
       <Project>{fa052c86-361a-4cea-99df-b00b9b68bbe1}</Project>
     </ProjectReference>

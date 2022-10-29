@@ -13,79 +13,26 @@
 
 #include <Semaphore.h>
 
-constexpr auto MAX_SERVER_COUNT = 50UL;
-
-struct ServerSlots{
-	struct ClientSlot {
-		std::string event_name;
-		sf::RectangleShape rect;
-	};
-private:
-	struct Slot : ClientSlot {
-		std::binary_semaphore constructed = std::binary_semaphore{ 1 };
-		std::binary_semaphore acquired = std::binary_semaphore{ 1 };
-	};
-	std::array<Slot, MAX_SERVER_COUNT> slots;
-public:
-	Slot& getServerSlot() {
-		const auto slot_iter = std::find_if(slots.begin(), slots.end(), [](Slot& slot) {
-			return slot.constructed.try_acquire();
-			}
-		);
-		assert(slot_iter != slots.end());
-		auto& slot = *slot_iter;
-
-		slot.event_name = std::format("SlotSemaphore{}", std::distance(slots.begin(), slot_iter));
-
-		return slot;
-	}
-	ClientSlot& getClientSlot() {
-		const auto slot_iter = std::find_if(slots.begin(), slots.end(), [](Slot& slot) {
-			return slot.acquired.try_acquire();
-			}
-		);
-		assert(slot_iter != slots.end());
-		auto& slot = *slot_iter;
-
-		return static_cast<ClientSlot&>(slot);
-	}
-};
+#include <Lab4DrawLibrary/Lab4DrawLibrary.h>
 
 
-void* SharedState() {
-	const auto _filemapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof ServerSlots, L"BattleshipSharedState");
-	const auto code = GetLastError();
-	std::cout << (code == ERROR_ALREADY_EXISTS) << '\n';
-	if (not _filemapping) {
-		std::cout << "mapping error: " << code;
-		std::exit(1);
-	}
-	else
-		std::cout << "created mapping\n";
-	const auto _shared = MapViewOfFile(_filemapping, FILE_MAP_ALL_ACCESS, 0, 0, sizeof ServerSlots);
-	if (not _shared) {
-		std::cout << "view error: " << GetLastError() << '\n';
-		std::exit(2);
-	}
-	const auto s_ptr = reinterpret_cast<ServerSlots*>(_shared);
-
-	if (code == ERROR_ALREADY_EXISTS) {
-		std::construct_at(s_ptr);
-
-	}
-	return s_ptr;
-}
 
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(1280, 720), "Draw");
+	sf::ContextSettings settings(0U, 0U, 8U);
+	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Draw", sf::Style::Default, settings);
+	window.setFramerateLimit(60);
 
-	std::vector<sf::RectangleShape> rectangles;
+	std::vector<Rect> rectangles;
 
 
-
-
+	auto& slot = ServerSlots::getServerSlots()->getServerSlot();
+	const auto event = CreateEventA(NULL, NULL, FALSE, slot.event_name);
+	if (event == NULL) {
+		std::cout << "event not created: " << GetLastError() << '\n';
+		std::exit(1);
+	}
 
 	//const auto semaphore = CreateSemaphore(NULL, 0, MAX_SERVER_COUNT, NULL);
 	//ReleaseSemaphore(semaphore, 1, NULL);
@@ -94,29 +41,38 @@ int main()
 
 
 	while (window.isOpen()) {
-		sf::Event event;
-		while (window.pollEvent(event)) {
-			switch (event.type) {
-			case sf::Event::Closed:
-				semaphore.acquire();
-				window.close();
-				break;
-			case sf::Event::KeyPressed:
-				switch (event.key.code) {
-				case sf::Keyboard::Space:
-					rectangles.push_back(sf::RectangleShape({10.f, 10.f}));
-					rectangles.back().setFillColor(sf::Color::Red);
-					//rectangles.back().setPosition()
+		{
+			sf::Event event;
+			while (window.pollEvent(event)) {
+				switch (event.type) {
+				case sf::Event::Closed:
+					std::cout << "waiting client disconnection\n";
+					semaphore.try_acquire();
+					slot.working.release();
+					std::cout << "closed\n";
+					window.close();
 					break;
 				}
-				break;
 			}
 		}
 
-		window.clear();
+		const auto wait_status = WaitForSingleObject(event, NULL);
+		switch (wait_status) {
+		case WAIT_OBJECT_0:
+			rectangles.push_back(slot.rect);
+			break;
+		case WAIT_TIMEOUT:
+			break;
+		case WAIT_FAILED:
+		case WAIT_ABANDONED:
+			std::cout << "wait failed: " << GetLastError();
+			std::exit(1);
+		}
 
-		for (auto const& rect : rectangles)
-			window.draw(rect);
+		window.clear(sf::Color::White);
+
+		for (auto const& rect : rectangles) 
+			window.draw(rect.data(), rect.size(), sf::Quads);
 
 		window.display();
 	}

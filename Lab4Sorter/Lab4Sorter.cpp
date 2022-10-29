@@ -8,6 +8,8 @@
 #include <__msvc_chrono.hpp>
 //#include <boost/interprocess/sync/lock>
 
+#include <Semaphore/Semaphore.h>
+
 int main()
 {
 	using namespace boost::interprocess;
@@ -32,17 +34,21 @@ int main()
 	//	mtx_remove() { named_mutex::remove("mtx"); }
 	//	~mtx_remove() { named_mutex::remove("mtx"); }
 	//} remover2;
-	named_mutex mtx{ open_or_create, "mtx" };
-	std::cout << "mtx ok\n";
+	//named_mutex mtx{ open_or_create, "mtx" };
+	//std::cout << "mtx ok\n";
+
+	Semaphore semaphore(1, 1, L"ListSemaphore");
 
 	for (auto d = .0; d != 1.; d += .1) {	// for(;;)
 		Sleep(10'000);
 		{
-			scoped_lock<named_mutex> lock(mtx);
+			semaphore.acquire();
+			//scoped_lock<named_mutex> lock(mtx);
 			list->sort();
 			for (const auto v : *list)
 				std::cout << v << ' ';
 			std::cout << '\n';
+			semaphore.release();
 		}
 	}
 

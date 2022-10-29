@@ -167,7 +167,7 @@ asio::awaitable<void> car_spawner() {
 			asio::deadline_timer car_timer(executor, boost::posix_time::milliseconds(arrivalTime));
 			co_await car_timer.async_wait(use_awaitable);
 
-			if (semaphore.acquire()) 
+			if (semaphore.try_acquire()) 
 				asio::co_spawn(executor, fill_car(), detached);
 			else 
 				++missed;

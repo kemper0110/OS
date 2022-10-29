@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #define WIN32_LEAN_AND_MEAN             // Исключите редко используемые компоненты из заголовков Windows
-
+#include <Windows.h>
 
 
 struct Semaphore {
@@ -13,6 +13,20 @@ struct Semaphore {
 		handle = CreateSemaphore(NULL, init, max, NULL);
 	}
 	bool acquire() {
+		const auto status = WaitForSingleObject(handle, INFINITE);
+		switch (status) {
+		case WAIT_TIMEOUT:
+			throw std::runtime_error("infinite timeout");
+		case WAIT_OBJECT_0:
+			return true;
+		case WAIT_ABANDONED_0:
+			throw std::runtime_error("abandoned");
+		case WAIT_FAILED:
+			throw std::runtime_error("wait failed");
+		default: throw status;
+		}
+	}
+	bool try_acquire() {
 		const auto status = WaitForSingleObject(handle, NULL);
 		switch (status) {
 		case WAIT_TIMEOUT:
